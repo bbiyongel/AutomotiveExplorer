@@ -39,7 +39,7 @@ if __name__ == "__main__":
 		
 	viz.plot( zip(*DATA) )
 	
-	clu = Clustering(DATA).kmeans(k=2)
+	clu = Clustering(DATA).kmeans(k=5)
 	clu.plot()
 	
 	exit(0)

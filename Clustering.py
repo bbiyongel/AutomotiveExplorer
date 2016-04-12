@@ -29,7 +29,7 @@ class Clustering:
 	
 	#---------------------------------------
 	def kmeans(self, k=2):
-		self.h = KMeans(n_clusters = k, init = 'k-means++', n_init = 10, max_iter = 900, tol = 0.0001, random_state = self.random_seed).fit( self.X )
+		self.h = KMeans(n_clusters = k, init = 'k-means++', n_init = 10, max_iter = 1000, tol = 0.00001, random_state = self.random_seed).fit( self.X )
 		self.labels = self.h.labels_
 		
 		return self
