@@ -21,7 +21,6 @@ if __name__ == "__main__":
 	
 	app.project(sigReaders, clust)
 	
-	
 	#-----------------------------
 	exit(0)
 	dicTS = { gb.SIG_NAMES[isr] : sr.getSignal(start=gb.D_START, end=gb.D_END) for isr, sr in enumerate(sigReaders) }

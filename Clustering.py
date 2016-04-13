@@ -1,22 +1,27 @@
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.preprocessing import MinMaxScaler
 from Visualize import Visualize
 from scipy.spatial import distance
 import matplotlib.pyplot as plt
 
 class Clustering:
-	def __init__(self, X):
+	def __init__(self, X, scale=False):
 		self.random_seed = 12345 # set to None for random
 		self.h = None
 		self.Y = None
-		# self.centers = None
-		self.X = X
+		self.scaler = None
+		
+		if scale:
+			self.scaler = MinMaxScaler() # StandardScaler() can also be used instead of MinMaxScaler()
+			self.X = self.scaler.fit_transform(X)
+		else:
+			self.X = X
     
 	#---------------------------------------
 	def kmeans(self, k=2):
 		self.h = KMeans(n_clusters = k, init = 'k-means++', n_init = 10, max_iter = 1000, tol = 0.00001, random_state = self.random_seed).fit( self.X )
 		self.Y = self.h.labels_
-		# self.centers = self.getCenters()
 		
 		return self
 		
@@ -52,12 +57,16 @@ class Clustering:
 	#---------------------------------------
 	def project(self, x):
 		if not self.done(): return
-		return self.h.predict(x)[0]
+		
+		x_scaled = x if self.scaler is None else self.scaler.transform(x)
+		return self.h.predict(x_scaled)[0]
 	
 	#---------------------------------------
 	def projectAll(self, X):
 		if not self.done(): return
-		return self.h.predict(X)
+		
+		X_scaled = X if self.scaler is None else self.scaler.transform(X)
+		return self.h.predict(X_scaled)
 	
 	#---------------------------------------
 	def plot(self):

@@ -1,6 +1,6 @@
 import sqlite3
 import datetime
-from signalpreprocessing import SignalPreProcessing
+from SignalPreProcessing import SignalPreProcessing
 import globals as gb
 
 class SignalReader(object):

@@ -15,14 +15,14 @@ def cluster(sigReaders):
 		dicTS = { gb.SIG_NAMES[isr] : sr.getSignal(start=date, end=gb.DURATION) for isr, sr in enumerate(sigReaders) }
 		date += datetime.timedelta(milliseconds=gb.DURATION)
 		
-		if any([ len(values)<2 for times, values in dicTS.values() ]):
+		if any([ len(values)<3 for times, values in dicTS.values() ]): #FIXME: add this validation directly to extractMany
 			continue
 		
 		x = SignalFeatures.extractMany([ values for times, values in dicTS.values() ])
 		DATA.append(x)
 		
 	# Visualize().plot( zip(*DATA) )
-	clust = Clustering(DATA).kmeans(k=5)
+	clust = Clustering(DATA, scale=True).kmeans(k=5)
 	return clust
 
 # =================================================================
