@@ -19,7 +19,8 @@ class Visualize:
 		
 		self.plots = None
 		self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
-	
+		self.colors = ['r', 'b', 'g','m', 'y', 'k']
+		
 	#---------------------------------------
 	@staticmethod
 	def colors(nb):
@@ -125,15 +126,15 @@ class Visualize:
 		
 	#---------------------------------------
 	def plot_groups(self, groups, fig = None):
-		colors = ['r', 'b', 'g','m', 'y', 'k']
+		colors = self.colors
 		keys = groups.keys()
 		
 		if len(keys) > len(colors):
 			print "Warning: the number of groups to plot is ", len(keys), " > ", len(colors),". Some groups may be colored similarly."
 			
-		for i, label in enumerate( keys ):
-			cl = colors[i % len(colors)]
-			self.do_plot( zip(* groups[label] ), color = cl )
+		for y in keys:
+			cl = colors[y % len(colors)]
+			self.do_plot( zip(* groups[y] ), color = cl )
 		
 		self.end_plot(fig)
 		
