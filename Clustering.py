@@ -55,14 +55,14 @@ class Clustering:
 			return centers
 		
 	#---------------------------------------
-	def project(self, x):
+	def predict(self, x):
 		if not self.done(): return
 		
 		x_scaled = x if self.scaler is None else self.scaler.transform(x)
 		return self.h.predict(x_scaled)[0]
 	
 	#---------------------------------------
-	def projectAll(self, X):
+	def predictAll(self, X):
 		if not self.done(): return
 		
 		X_scaled = X if self.scaler is None else self.scaler.transform(X)

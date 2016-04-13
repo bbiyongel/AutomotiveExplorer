@@ -13,6 +13,8 @@ class SignalReader(object):
 		self.init_date = datetime.datetime(year=2011, month=6, day=16, hour=5, minute=23, second=0)
 		
 		sig_id = dbfile.split('_')[1].split('.')[0]
+		self.signal_name = gb.SIG_NAMES[ gb.SIG_IDS.index(sig_id) ] # FIXME: this should normally be an input to __init__
+		
 		self.extreme_values = gb.EXTREME[sig_id] # TODO test first if EXTREME is defined in globals
 		if preprocess:
 			timestamps, values = self.getSignal(end = preprocess_duration)

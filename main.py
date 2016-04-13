@@ -23,9 +23,8 @@ if __name__ == "__main__":
 	
 	#-----------------------------
 	exit(0)
-	dicTS = { gb.SIG_NAMES[isr] : sr.getSignal(start=gb.D_START, end=gb.D_END) for isr, sr in enumerate(sigReaders) }
-	
-	times, axes = SignalMerge.merge( dicTS.values() )
+	dicTS = { gb.SIG_NAMES[isr] : sr.getSignal(start=gb.D_START_CLUSTERING, end=gb.D_END_CLUSTERING) for isr, sr in enumerate(sigReaders) }
+	times, axes = SignalMerge.merge( dicTS.values() ) # TODO: integrate this in SignalFeatures by returning raw data instead of extracted features
 	axes = [ ax for ax in axes if all(not math.isnan(val) for val in ax) ] # FIXME
 	
 	#-----------------------------
