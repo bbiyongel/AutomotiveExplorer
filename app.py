@@ -1,70 +1,57 @@
 import globals as gb
 from Visualize import Visualize
 from SignalFeatures import SignalFeatures
-from Clustering import Clustering
+from collections import defaultdict
 import datetime
 import time
 import pylab as plt
 
 # =================================================================
-def cluster(sigReaders, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
+# TODO create a class with methods buildTrainData, project
+def buildTrainData(sigReaders, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
 	DATA = []
 	date = d_start
 	while date < d_end:
 		print date, " --- ", date + datetime.timedelta(milliseconds=gb.DURATION)
-		dicTS = { gb.SIG_NAMES[isr] : sr.getSignal(start=date, end=gb.DURATION) for isr, sr in enumerate(sigReaders) }
+		sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION) for sr in sigReaders ]
 		date += datetime.timedelta(milliseconds=gb.DURATION)
 		
-		if any([ len(values)<3 for times, values in dicTS.values() ]): #FIXME: add this validation directly to extractMany
+		if any([ len(values)<3 for times, values in sigsTimeValues ]): #FIXME: add this validation directly to extractMany
 			continue
 		
-		x = SignalFeatures.extractMany([ values for times, values in dicTS.values() ])
+		x = SignalFeatures.extractMany([ values for times, values in sigsTimeValues ]) #Warning: Future calls to extractMany should take the signals in same order
 		DATA.append(x)
-		
-	Visualize().plot( zip(*DATA) )
-	clust = Clustering(DATA, scale=True).kmeans(k=3)
-	return clust
+	
+	return DATA
 
 # =================================================================
 def project(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION):
 	viz = Visualize()
-	allPeriods_dicTS = [] # list of dicTS (subsequence of each signal), over all periods
-	allPeriods_predY = [] # list of the predicted cluster id for dicTS, over all periods
+	dico = defaultdict(list)
 	
 	date = d_start
 	while date < d_end:
 		print date, " --- ", date + datetime.timedelta(milliseconds=gb.DURATION)
-		dicTS = { sr.signal_name : sr.getSignal(start=date, end=gb.DURATION) for sr in sigReaders }
+		sigsNames = [ sr.signal_name for sr in sigReaders ] # Out
+		sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION) for sr in sigReaders ]
 		date += datetime.timedelta(milliseconds=gb.DURATION)
 		
-		if any([ len(values)<3 for times, values in dicTS.values() ]): #FIXME: add this validation directly to extractMany
+		if any([ len(values)<3 for times, values in sigsTimeValues ]): #FIXME: add this validation directly to extractMany
 			continue
 		
-		x = SignalFeatures.extractMany([ values for times, values in dicTS.values() ])
+		x = SignalFeatures.extractMany([ values for times, values in sigsTimeValues ])
 		y = clust.predict(x) # get the cluster id (i.e., cluster label)
-		
-		allPeriods_dicTS.append( dicTS )
-		allPeriods_predY.append( y )
-		
-		# for signame, (timestamps, values) in dicTS.items():
-			# figurename = "plots/"+signame+"_"+str(y)+"_"+str(date).replace(":","-")+"_"+str(time.time())+".png"
-			# viz.plot( [timestamps, values], axs_labels=['Time', signame], color=viz.colors[y%len(viz.colors)], fig=figurename )
+		for signame, (times, values) in zip(sigsNames, sigsTimeValues):
+			dico[signame+"TIMES"] += times
+			dico[signame+"VALUES"] += values
+			dico[signame+"PREDS"] += [y for _ in values]
 		
 	# -----------------
-	signames = [ sr.signal_name for sr in sigReaders ]
-	for signame in signames:
-		signame_timestamps = []
-		signame_values = []
-		signame_labels = []
+	for sr in sigReaders:
+		sig_times, sig_values, sig_y = dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"], dico[sr.signal_name+"PREDS"]
 		
-		times_vales_y = [ (dicTS[signame], y) for (dicTS, y) in zip(allPeriods_dicTS, allPeriods_predY) ]
-		for (timestamps, values), y in times_vales_y:
-			signame_timestamps += timestamps
-			signame_values += values
-			signame_labels += [ viz.colors[y%len(viz.colors)] for _ in values]
-			
-		figurename = "plots/"+signame+"_"+str(time.time())+".png"
-		viz.plot( [signame_timestamps, signame_values], axs_labels=['Time', signame], color=signame_labels, fig=figurename )
-	
-	
+		signame_labels = [ viz.colors[y%len(viz.colors)] for y in sig_y]
+		figurename = "plots/"+sr.signal_name+"_"+str(time.time())+".png"
+		viz.plot( [sig_times, sig_values], axs_labels=['Time', sr.signal_name], color=signame_labels, fig=figurename )
+
 # =================================================================

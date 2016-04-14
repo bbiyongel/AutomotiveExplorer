@@ -55,8 +55,8 @@ class SignalFeatures(object):
 		histo, _ = np.histogram( sig_values, bins=3 ); histo = histo.tolist()
 		histo_deriv, _ = np.histogram( sig_values_deriv, bins=3 ); histo_deriv = histo_deriv.tolist()
 		
-		res = features + features_deriv + ratios + histo + histo_deriv
-		# res = [median, std]
+		# res = features + features_deriv + ratios + histo + histo_deriv
+		res = features + features_deriv + ratios
 		
 		return [ float(v) for v in res ]
 	
