@@ -22,6 +22,12 @@ class Visualize:
 		self.colors = ['r', 'b', 'g','m', 'y', 'k']
 		
 	#---------------------------------------
+	def cl(self, id):
+		if id >= len(self.colors):
+			print "Warning: the color id is ", id, " >= ", len(self.colors),". Some colors may be reused for the same id."
+		return self.colors[id%len(self.colors)]
+		
+	#---------------------------------------
 	@staticmethod
 	def colors(nb):
 		cmap = plt.get_cmap('gist_ncar')
@@ -82,7 +88,7 @@ class Visualize:
 
 			
 	#---------------------------------------
-	def do_plot(self, axs, axs_labels = None, color = 'r', marker = '.', lw = 1): # FIXME what is len(axs) is > 3 ? Use Multidim Scaling or Feature selection
+	def do_plot(self, axs, axs_labels = None, color = 'r', marker = '.', lw = 1, label=""): # FIXME what is len(axs) is > 3 ? Use Multidim Scaling or Feature selection
 		if axs_labels is None:
 			axs_labels = [ "Axis "+str(i+1) for i in range( len(axs) ) ]
 		
@@ -95,8 +101,12 @@ class Visualize:
 		if self.plots is None:
 			self.start_plot( axs_labels )
 		
-		if marker == '-': self.plots.plot( *axs, c = color, lw = lw )
-		else: self.plots.scatter( *axs, c = color, marker = marker, lw = self.lw, s = self.s, cmap = plt.copper() )
+		if marker == '-':
+			self.plots.plot( *axs, c = color, lw = lw, label=label )
+		else:
+			self.plots.scatter( *axs, c = color, marker = marker, lw = self.lw, s = self.s, cmap = plt.copper(), label=label )
+			
+		self.plots.legend(loc='best', ncol=2)
 		
 		# Re adjusting the xrange, yrange and zrange limits FIXME
 		'''

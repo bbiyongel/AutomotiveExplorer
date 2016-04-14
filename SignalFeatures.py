@@ -7,8 +7,8 @@ class SignalFeatures(object):
 		pass
 	
 	# -------------------------------------------------------------
-	@staticmethod
-	def dominantFrequencies(L, n=1):
+	# @staticmethod
+	def dominantFrequencies(self, L, n=1):
 		w = np.fft.fft(L)
 		freqs = np.fft.fftfreq(len(L))
 		abs_w = [abs(v) for v in w]
@@ -19,8 +19,8 @@ class SignalFeatures(object):
 		
 	# -------------------------------------------------------------
 	''' Extract some simple features from a timeseries '''
-	@staticmethod
-	def extract(sig_values):
+	# @staticmethod
+	def extract(self, sig_values):
 		mean = np.mean(sig_values)
 		median = np.median(sig_values)
 		rms = np.sqrt(np.mean(np.square(sig_values)))
@@ -29,7 +29,7 @@ class SignalFeatures(object):
 		minimum = min(sig_values)
 		skewness = scipy.stats.skew(sig_values)
 		kurtosis = scipy.stats.kurtosis(sig_values)
-		dominantNFreqs = SignalFeatures.dominantFrequencies(sig_values, n=1)
+		dominantNFreqs = self.dominantFrequencies(sig_values, n=1)
 		
 		sig_values_deriv = np.gradient(sig_values)
 		
@@ -41,7 +41,7 @@ class SignalFeatures(object):
 		minimum_deriv = min(sig_values_deriv)
 		skewness_deriv = scipy.stats.skew(sig_values_deriv)
 		kurtosis_deriv = scipy.stats.kurtosis(sig_values_deriv)
-		dominantNFreqs_deriv = SignalFeatures.dominantFrequencies(sig_values_deriv, n=1)
+		dominantNFreqs_deriv = self.dominantFrequencies(sig_values_deriv, n=1)
 		
 		decrease_ratio = len([v for v in sig_values_deriv if v < 0]) * 1. / len(sig_values_deriv)
 		increase_ratio = len([v for v in sig_values_deriv if v > 0]) * 1. / len(sig_values_deriv)
@@ -61,8 +61,8 @@ class SignalFeatures(object):
 		return [ float(v) for v in res ]
 	
 	''' Extract some simple features from many timeseries '''
-	@staticmethod
-	def extractMany(L_sig_values):
-		F = [ SignalFeatures.extract(sig_values) for sig_values in L_sig_values ]
-		x = [ v for vv in F for v in vv ] # Flat list of all features for all signals
+	# @staticmethod
+	def extractMany(self, L_sig_values):
+		F = [ self.extract(sig_values) for sig_values in L_sig_values ]
+		x = [ v for vv in F for v in vv ] # Flat list of features for all signals
 		return x

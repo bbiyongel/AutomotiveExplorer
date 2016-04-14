@@ -19,7 +19,7 @@ def buildTrainData(sigReaders, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLU
 		if any([ len(values)<3 for times, values in sigsTimeValues ]): #FIXME: add this validation directly to extractMany
 			continue
 		
-		x = SignalFeatures.extractMany([ values for times, values in sigsTimeValues ]) #Warning: Future calls to extractMany should take the signals in same order
+		x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ]) #Warning: Future calls to extractMany should take the signals in same order
 		DATA.append(x)
 	
 	return DATA
@@ -39,7 +39,7 @@ def project(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PRO
 		if any([ len(values)<3 for times, values in sigsTimeValues ]): #FIXME: add this validation directly to extractMany
 			continue
 		
-		x = SignalFeatures.extractMany([ values for times, values in sigsTimeValues ])
+		x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ])
 		y = clust.predict(x) # get the cluster id (i.e., cluster label)
 		for signame, (times, values) in zip(sigsNames, sigsTimeValues):
 			dico[signame+"TIMES"] += times

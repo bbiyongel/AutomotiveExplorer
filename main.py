@@ -6,12 +6,14 @@ from SignalMerge import SignalMerge
 from Clustering import Clustering
 import os
 import math
+from itertools import combinations
 import datetime
 import warnings
 import numpy as np
 
 # =================================================================
 if __name__ == "__main__":
+	viz = Visualize()
 	warnings.simplefilter(action = "ignore", category = FutureWarning)
 	dbfiles = [gb.PATH + gb.VEHICLE + "_" + sig_id + ".db" for sig_id in gb.SIG_IDS]
 	sigReaders = [ SignalReader(dbfile, preprocess=False) for dbfile in dbfiles ]
@@ -19,38 +21,41 @@ if __name__ == "__main__":
 	#-----------------------------
 	DATA = app.buildTrainData(sigReaders)
 	
-	combinations=[]
-	qualities=[]
-	for n_features in range(2, len(DATA[0])):
-		for k in range(2, 5):
-			clust = Clustering(DATA, scale=True, n_features=n_features).kmeans(k=k)
+	# features_combinations = range(2, len(DATA[0]))
+	features_combinations = [ comb for comb in combinations( range( len(DATA[0])/10 ), 4 ) ]
+	
+	for k in range(2, 6):
+		combos=[]; qualities=[]
+		
+		for id_combin, n_features in enumerate( features_combinations ):
 			
+			clust = Clustering(DATA, scale=True, features=n_features).kmeans(k=k) # clust.plot()
 			quality = clust.quality()
-			print "n_features=", n_features, " ------ k=", k, " ------ quality=", quality
-			# clust.plot()
+			# app.project(sigReaders, clust)
 			
-			combinations.append( int(str(n_features)+str(k)) )
+			combos.append( id_combin )
 			qualities.append(quality)
 	
-			# app.project(sigReaders, clust)
+			print "k=", k, " ------ combination=", id_combin, " ------ quality=", quality
+			
+		viz.do_plot( [combos, qualities], axs_labels=['Combination (over features)', 'Quality'], marker="-", color=viz.cl(k-1), label="k="+str(k) )
+	viz.end_plot( fig="plots/quality-combos.png" )
 	
-	Visualize().plot( [combinations, qualities], axs_labels=['Combination ID (n_features k)', 'Quality'], marker="-" )
-	
-	
 	#-----------------------------
-	#-----------------------------
-	#-----------------------------
-	#-----------------------------
-	exit(0) #FIXME
+	'''
 	dicTS = { gb.SIG_NAMES[isr] : sr.getSignal(start=gb.D_START_CLUSTERING, end=gb.D_END_CLUSTERING) for isr, sr in enumerate(sigReaders) }
 	times, axes = SignalMerge.merge( dicTS.values() ) # TODO: integrate this in SignalFeatures by returning raw data instead of extracted features
 	axes = [ ax for ax in axes if all(not math.isnan(val) for val in ax) ] # FIXME
 	
-	#-----------------------------
 	viz = Visualize()
 	
 	for signame, (timestamps, values) in dicTS.items():
 		viz.plot([timestamps, values], axs_labels=['Time', signame])
 	
 	viz.plot(axes)
+	'''
+	
+	#-----------------------------
 	map(lambda sr: sr.closeDB(), sigReaders)
+	
+	

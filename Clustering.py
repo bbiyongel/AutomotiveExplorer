@@ -8,7 +8,8 @@ from scipy.spatial import distance
 import matplotlib.pyplot as plt
 
 class Clustering:
-	def __init__(self, X, scale=False, n_features=None):
+	# def __init__(self, X, scale=False, n_features=None, feature_ids=None):
+	def __init__(self, X, scale=False, features=None):
 		self.random_seed = 12345 # set to None for random
 		self.X = X
 		
@@ -18,20 +19,36 @@ class Clustering:
 		self.scaler = None
 		self.ids = None
 		
-		# Visualize().plot( zip(*self.X) ) # JUST FOR DEBUG
+		# Visualize().plot( zip(*self.X) ) # FOR DEBUG
 		
-		# Reduce the number of features to n_features by eliminating low variance features
-		if n_features is not None:
-			variances = VarianceThreshold().fit(self.X).variances_
-			self.ids = sorted(range(len(variances)), key=lambda i: variances[i])[-n_features:] # indexes of the top n_features values in variances
-			print "Selected features", self.ids, "on a total of", len(X[0])
+		# Reduce the number of features
+		if features is not None:
+			if isinstance( features, (int, long, float) ):
+				variances = VarianceThreshold().fit(self.X).variances_
+				self.ids = sorted(range(len(variances)), key=lambda i: variances[i])[-int(features):] # indexes of the top n_features values in variances
+			elif type(features) in [list,tuple]:
+				self.ids = features #TODO validate that features is a list of ints and len(features) <= len(self.X[0])
+				
 			self.X = self.reduceFeatures(self.X)
+			# print "Selected features", self.ids, "on a total of", len(X[0])  # FOR DEBUG
+			
+		# Reduce the number of features by using only the specified features
+		# if feature_ids is not None:
+			# self.ids = feature_ids
+			# self.X = self.reduceFeatures(self.X)
+			
+		# Reduce the number of features to n_features by eliminating low variance features
+		# if n_features is not None:
+			# variances = VarianceThreshold().fit(self.X).variances_
+			# self.ids = sorted(range(len(variances)), key=lambda i: variances[i])[-n_features:] # indexes of the top n_features values in variances
+			# self.X = self.reduceFeatures(self.X)
+			
 			
 		if scale:
 			self.scaler = MinMaxScaler() # StandardScaler() can also be used instead of MinMaxScaler()
 			self.X = self.scaler.fit_transform(self.X)
 		
-		# Visualize().plot( zip(*self.X) ) # JUST FOR DEBUG
+		# Visualize().plot( zip(*self.X) ) # FOR DEBUG
     
 	#---------------------------------------
 	def reduceFeatures(self, X):
