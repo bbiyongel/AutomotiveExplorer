@@ -88,7 +88,7 @@ class Visualize:
 
 			
 	#---------------------------------------
-	def do_plot(self, axs, axs_labels = None, color = 'r', marker = '.', lw = 1, label=""): # FIXME what is len(axs) is > 3 ? Use Multidim Scaling or Feature selection
+	def do_plot(self, axs, axs_labels = None, color = 'r', marker = '.', lw = 1, label="Label"): # FIXME what is len(axs) is > 3 ? Use Multidim Scaling or Feature selection
 		if axs_labels is None:
 			axs_labels = [ "Axis "+str(i+1) for i in range( len(axs) ) ]
 		

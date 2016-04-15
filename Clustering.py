@@ -1,4 +1,6 @@
 import numpy as np
+import math
+import globals as gb
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
@@ -6,12 +8,15 @@ from sklearn.feature_selection import VarianceThreshold
 from Visualize import Visualize
 from scipy.spatial import distance
 import matplotlib.pyplot as plt
+from random import shuffle
+from sklearn.metrics.pairwise import cosine_similarity
 
 class Clustering:
 	# def __init__(self, X, scale=False, n_features=None, feature_ids=None):
 	def __init__(self, X, scale=False, features=None):
 		self.random_seed = 12345 # set to None for random
 		self.X = X
+		self.k = None
 		
 		self.h = None
 		self.Y = None
@@ -26,23 +31,14 @@ class Clustering:
 			if isinstance( features, (int, long, float) ):
 				variances = VarianceThreshold().fit(self.X).variances_
 				self.ids = sorted(range(len(variances)), key=lambda i: variances[i])[-int(features):] # indexes of the top n_features values in variances
+				# self.ids = range(len(self.X[0])); shuffle(self.ids); self.ids = self.ids[-int(features):] # FOR DEBUG (random ranking)
+				
 			elif type(features) in [list,tuple]:
 				self.ids = features #TODO validate that features is a list of ints and len(features) <= len(self.X[0])
 				
 			self.X = self.reduceFeatures(self.X)
-			# print "Selected features", self.ids, "on a total of", len(X[0])  # FOR DEBUG
-			
-		# Reduce the number of features by using only the specified features
-		# if feature_ids is not None:
-			# self.ids = feature_ids
-			# self.X = self.reduceFeatures(self.X)
-			
-		# Reduce the number of features to n_features by eliminating low variance features
-		# if n_features is not None:
-			# variances = VarianceThreshold().fit(self.X).variances_
-			# self.ids = sorted(range(len(variances)), key=lambda i: variances[i])[-n_features:] # indexes of the top n_features values in variances
-			# self.X = self.reduceFeatures(self.X)
-			
+			print "Selected features", self.ids, "on a total of", len(X[0])  # FOR DEBUG
+			self.getFeaturesName(self.ids)
 			
 		if scale:
 			self.scaler = MinMaxScaler() # StandardScaler() can also be used instead of MinMaxScaler()
@@ -50,6 +46,20 @@ class Clustering:
 		
 		# Visualize().plot( zip(*self.X) ) # FOR DEBUG
     
+	#---------------------------------------
+	def getFeaturesName(self, ids):
+		signames = [ gb.SIG_NAMES[sigid] for sigid in gb.SIG_IDS ]
+		feature_names = ["mean", "median", "rms", "std", "maximum", "minimum", "skewness", "kurtosis", "dominantNFreqs","mean_d", "median_d", "rms_d", "std_d", "maximum_d", "minimum_d", "skewness_d", "kurtosis_d", "dominantNFreqs_d", "ratio_dec", "ratio_inc"]
+		all_features = []
+		for signame in signames:
+			for fname in feature_names:
+				all_features.append(signame+"_"+fname)
+		
+		print "=====", len(all_features), len(ids)
+		print "ids ===", ids
+		print "names ===", [ all_features[id] for id in ids ]
+		return [ all_features[id] for id in ids ]
+		
 	#---------------------------------------
 	def reduceFeatures(self, X):
 		if self.ids is None:
@@ -61,6 +71,7 @@ class Clustering:
 	def kmeans(self, k=2):
 		self.h = KMeans(n_clusters = k, init = 'k-means++', n_init = 10, max_iter = 1000, tol = 0.00001, random_state = self.random_seed).fit( self.X )
 		self.Y = self.h.labels_
+		self.k = k
 		
 		return self
 		
@@ -120,9 +131,14 @@ class Clustering:
 			Y = self.predictAll(X)
 		
 		return silhouette_score(X, Y, metric='euclidean')
+		# return silhouette_score(X, Y, metric='cosine')
+		# return silhouette_score(X, Y, metric=self.normalized_distance)
 		
 	#---------------------------------------
-	def plot(self):
+	# def normalized_distance(self, x1, x2):
+		# return math.acos( float(cosine_similarity(x1, x2)) ) / math.pi
+	#---------------------------------------
+	def plot(self, fig=None):
 		if not self.done(): return
 		
 		viz = Visualize()
@@ -142,7 +158,7 @@ class Clustering:
 			centers_for_plot.append( [np.mean(col) for col in zip(* clusters[label] ) ] )
 		
 		viz.do_plot( zip(*centers_for_plot), marker='o', color='m' )
-		viz.plot_groups(clusters)
+		viz.plot_groups(clusters, fig)
 	
 	#---------------------------------------
 	

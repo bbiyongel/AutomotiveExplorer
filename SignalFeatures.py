@@ -1,13 +1,14 @@
 import numpy as np
 import scipy
 import math
+import globals as gb
 
 class SignalFeatures(object):
 	def __init__(self):
-		pass
-	
+		self.n_primitives = 2 # FIXME
+		self.n_signals = len(gb.SIG_IDS)
+		
 	# -------------------------------------------------------------
-	# @staticmethod
 	def dominantFrequencies(self, L, n=1):
 		w = np.fft.fft(L)
 		freqs = np.fft.fftfreq(len(L))
@@ -16,10 +17,8 @@ class SignalFeatures(object):
 		dominant_freqs = [freqs[id] for id in ids]
 		
 		return dominant_freqs
-		
 	# -------------------------------------------------------------
 	''' Extract some simple features from a timeseries '''
-	# @staticmethod
 	def extract(self, sig_values):
 		mean = np.mean(sig_values)
 		median = np.median(sig_values)
@@ -61,7 +60,6 @@ class SignalFeatures(object):
 		return [ float(v) for v in res ]
 	
 	''' Extract some simple features from many timeseries '''
-	# @staticmethod
 	def extractMany(self, L_sig_values):
 		F = [ self.extract(sig_values) for sig_values in L_sig_values ]
 		x = [ v for vv in F for v in vv ] # Flat list of features for all signals

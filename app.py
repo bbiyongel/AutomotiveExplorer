@@ -7,7 +7,6 @@ import time
 import pylab as plt
 
 # =================================================================
-# TODO create a class with methods buildTrainData, project
 def buildTrainData(sigReaders, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
 	DATA = []
 	date = d_start
@@ -25,13 +24,13 @@ def buildTrainData(sigReaders, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLU
 	return DATA
 
 # =================================================================
-def project(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION):
+def project(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION, plot_path=""):
 	viz = Visualize()
 	dico = defaultdict(list)
 	
 	date = d_start
 	while date < d_end:
-		print date, " --- ", date + datetime.timedelta(milliseconds=gb.DURATION)
+		print "PROJECTION", date, " --- ", date + datetime.timedelta(milliseconds=gb.DURATION)
 		sigsNames = [ sr.signal_name for sr in sigReaders ] # Out
 		sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION) for sr in sigReaders ]
 		date += datetime.timedelta(milliseconds=gb.DURATION)
@@ -51,7 +50,7 @@ def project(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PRO
 		sig_times, sig_values, sig_y = dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"], dico[sr.signal_name+"PREDS"]
 		
 		signame_labels = [ viz.colors[y%len(viz.colors)] for y in sig_y]
-		figurename = "plots/"+sr.signal_name+"_"+str(time.time())+".png"
+		figurename = plot_path+sr.signal_name+"_"+str(time.time())+".png"
 		viz.plot( [sig_times, sig_values], axs_labels=['Time', sr.signal_name], color=signame_labels, fig=figurename )
 
 # =================================================================
