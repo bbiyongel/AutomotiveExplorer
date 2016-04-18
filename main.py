@@ -6,6 +6,7 @@ from SignalMerge import SignalMerge
 from Clustering import Clustering
 import os
 import math
+import random
 from itertools import combinations
 import datetime
 import warnings
@@ -21,42 +22,28 @@ if __name__ == "__main__":
 	# -----------------------------
 	DATA = app.buildTrainData(sigReaders)
 	
-	features_combinations = range(2, len(DATA[0]))
-	# features_combinations = combinations( range( len(DATA[0]) ), 2 )
+	ranges = list(range( len(DATA[0]) )); random.shuffle(ranges)
+	features_combinations = combinations( ranges, 3 )
 	
-	# log = open('plots/combins.txt','a')
+	# features_combinations = range(2, len(DATA[0]))
 	
-	for k in range(3, 6):
+	for k in range(3, 4):
 		combos=[]; qualities=[]
 		
 		for id_combin, n_features in enumerate( features_combinations ):
-			log = open('plots/combins.txt','a')
-			
-			clust = Clustering(DATA, scale=True, features=n_features).kmeans(k=k)
+			clust = Clustering(DATA, scale=True, features=None).kmeans(k=k)
+			# clust = Clustering(DATA, scale=True, features=n_features).kmeans(k=k)
 			quality = clust.quality()
 			
-			print "k=", k, " ------ combination=", id_combin, " ------ quality=", quality, n_features
-			if not os.path.exists("plots/k"+str(k)+"/"): os.makedirs("plots/k"+str(k)+"/")
-			if not os.path.exists("plots/k"+str(k)+"/"+str(id_combin)+"/"): os.makedirs("plots/k"+str(k)+"/"+str(id_combin)+"/")
-			plot_path = "plots/k"+str(k)+"/"+str(id_combin)+"/"
-			
-			log.write("COMB " + str(id_combin) + '\n')
-			log.write('-'.join(str(id) for id in clust.ids) + '\n')
-			log.write('-'.join( clust.getFeaturesName(clust.ids) ) + '\n')
-			log.write('\n')
-			log.close()
-			
-			# clust.plot( fig = plot_path+"_COMB"+'-'.join(str(id) for id in clust.ids)+"_QLT"+str(quality)+".png" )
-			clust.plot( fig = plot_path+"_COMB_"+str(id_combin)+"_QLT"+str(quality)+".png" )
-			app.project(sigReaders, clust, plot_path=plot_path)
+			path = 'plots/'+str(id_combin)+'/'
+			app.logInformations( id_combin=id_combin, clust=clust, path=path )
+			app.project(sigReaders, clust, path= path )
 			
 			combos.append( id_combin )
 			qualities.append(quality)
 			
 		viz.do_plot( [combos, qualities], axs_labels=['Combination (over features)', 'Quality'], marker="-", color=viz.cl(k-1), label="k="+str(k) )
 	viz.end_plot( fig="plots/quality-combos.png" )
-	
-	# log.close()
 	
 	# -----------------------------
 	'''

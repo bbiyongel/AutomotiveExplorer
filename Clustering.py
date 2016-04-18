@@ -12,7 +12,6 @@ from random import shuffle
 from sklearn.metrics.pairwise import cosine_similarity
 
 class Clustering:
-	# def __init__(self, X, scale=False, n_features=None, feature_ids=None):
 	def __init__(self, X, scale=False, features=None):
 		self.random_seed = 12345 # set to None for random
 		self.X = X
@@ -38,7 +37,6 @@ class Clustering:
 				
 			self.X = self.reduceFeatures(self.X)
 			print "Selected features", self.ids, "on a total of", len(X[0])  # FOR DEBUG
-			self.getFeaturesName(self.ids)
 			
 		if scale:
 			self.scaler = MinMaxScaler() # StandardScaler() can also be used instead of MinMaxScaler()
@@ -46,20 +44,6 @@ class Clustering:
 		
 		# Visualize().plot( zip(*self.X) ) # FOR DEBUG
     
-	#---------------------------------------
-	def getFeaturesName(self, ids):
-		signames = [ gb.SIG_NAMES[sigid] for sigid in gb.SIG_IDS ]
-		feature_names = ["mean", "median", "rms", "std", "maximum", "minimum", "skewness", "kurtosis", "dominantNFreqs","mean_d", "median_d", "rms_d", "std_d", "maximum_d", "minimum_d", "skewness_d", "kurtosis_d", "dominantNFreqs_d", "ratio_dec", "ratio_inc"]
-		all_features = []
-		for signame in signames:
-			for fname in feature_names:
-				all_features.append(signame+"_"+fname)
-		
-		print "=====", len(all_features), len(ids)
-		print "ids ===", ids
-		print "names ===", [ all_features[id] for id in ids ]
-		return [ all_features[id] for id in ids ]
-		
 	#---------------------------------------
 	def reduceFeatures(self, X):
 		if self.ids is None:

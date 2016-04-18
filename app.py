@@ -4,6 +4,7 @@ from SignalFeatures import SignalFeatures
 from collections import defaultdict
 import datetime
 import time
+import os
 import pylab as plt
 
 # =================================================================
@@ -24,7 +25,7 @@ def buildTrainData(sigReaders, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLU
 	return DATA
 
 # =================================================================
-def project(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION, plot_path=""):
+def project(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION, path=""):
 	viz = Visualize()
 	dico = defaultdict(list)
 	
@@ -46,11 +47,27 @@ def project(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PRO
 			dico[signame+"PREDS"] += [y for _ in values]
 		
 	# -----------------
+	if not os.path.exists(path): os.makedirs(path)
 	for sr in sigReaders:
 		sig_times, sig_values, sig_y = dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"], dico[sr.signal_name+"PREDS"]
 		
 		signame_labels = [ viz.colors[y%len(viz.colors)] for y in sig_y]
-		figurename = plot_path+sr.signal_name+"_"+str(time.time())+".png"
+		figurename = path+sr.signal_name+"_"+str(time.time())+".png"
 		viz.plot( [sig_times, sig_values], axs_labels=['Time', sr.signal_name], color=signame_labels, fig=figurename )
+
+# =================================================================
+def logInformations( id_combin, clust, path="" ):
+	if not os.path.exists(path): os.makedirs(path)
+	
+	log = open( path+'_combins.txt', 'a' )
+	log.write("COMB " + str(id_combin) + '\n')
+	if clust.ids is not None:
+		log.write(' - '.join(str(id) for id in clust.ids) + '\n')
+		
+	log.write(' - '.join( SignalFeatures().getFeaturesName(clust.ids) ) + '\n')
+	log.write('\n')
+	log.close()
+	
+	clust.plot( fig = path+'/_clustering.png' )
 
 # =================================================================
