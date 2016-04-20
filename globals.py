@@ -11,7 +11,7 @@ DURATION = 15 * 60*1000 # milliseconds
 
 import datetime
 D_START_CLUSTERING = datetime.datetime(year=2013, month=12, day=1, hour=9, minute=0, second=0, microsecond=0)
-D_END_CLUSTERING = datetime.datetime(year=2013, month=12, day=15, hour=20, minute=0, second=0, microsecond=0)
+D_END_CLUSTERING = datetime.datetime(year=2013, month=12, day=30, hour=20, minute=0, second=0, microsecond=0)
 
 D_START_PROJECTION = datetime.datetime(year=2013, month=12, day=3, hour=9, minute=0, second=0, microsecond=0)
 D_END_PROJECTION = datetime.datetime(year=2013, month=12, day=3, hour=20, minute=0, second=0, microsecond=0)

@@ -2,6 +2,8 @@ import numpy as np
 import math
 import globals as gb
 from sklearn.cluster import KMeans
+from sklearn.mixture import GMM
+from sklearn.mixture import DPGMM
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.feature_selection import VarianceThreshold
@@ -30,20 +32,20 @@ class Clustering:
 			if isinstance( features, (int, long, float) ):
 				variances = VarianceThreshold().fit(self.X).variances_
 				self.ids = sorted(range(len(variances)), key=lambda i: variances[i])[-int(features):] # indexes of the top n_features values in variances
-				# self.ids = range(len(self.X[0])); shuffle(self.ids); self.ids = self.ids[-int(features):] # FOR DEBUG (random ranking)
 				
 			elif type(features) in [list,tuple]:
-				self.ids = features #TODO validate that features is a list of ints and len(features) <= len(self.X[0])
-				
+				self.ids = features
+			
 			self.X = self.reduceFeatures(self.X)
 			print "Selected features", self.ids, "on a total of", len(X[0])  # FOR DEBUG
 			
-		if scale:
-			self.scaler = MinMaxScaler() # StandardScaler() can also be used instead of MinMaxScaler()
-			self.X = self.scaler.fit_transform(self.X)
-		
+			
 		# Visualize().plot( zip(*self.X) ) # FOR DEBUG
     
+		if scale:
+			self.scaler = StandardScaler() # MinMaxScaler() can also be used instead of StandardScaler()
+			self.X = self.scaler.fit_transform(self.X)
+
 	#---------------------------------------
 	def reduceFeatures(self, X):
 		if self.ids is None:
@@ -56,6 +58,32 @@ class Clustering:
 		self.h = KMeans(n_clusters = k, init = 'k-means++', n_init = 10, max_iter = 1000, tol = 0.00001, random_state = self.random_seed).fit( self.X )
 		self.Y = self.h.labels_
 		self.k = k
+		
+		return self
+		
+	#---------------------------------------
+	def gmm(self, k=2):
+		self.h = GMM(n_components=k, random_state = self.random_seed).fit( self.X )
+		self.Y = self.h.predict( self.X )
+		self.k = k
+		
+		#TODO
+		# posterior = self.h.predict_proba( self.X[:5] )
+		# likelihood = self.h.score( self.X[:5] )
+		
+		return self
+		
+	#---------------------------------------
+	''' Dirichlet Process is as likely to start a new cluster for a point as it is to add that point to a cluster with alpha elements (0<alpha<inf).
+	A higher alpha means more clusters, as the expected number of clusters is alpha*log(N)'''
+	def dpgmm(self, k=10, alpha=1.0):
+		self.h = DPGMM(n_components=k, alpha=alpha, random_state = self.random_seed).fit( self.X )
+		self.Y = self.h.predict( self.X )
+		self.k = k # this is the max number of components
+		
+		#TODO
+		# posterior = self.h.predict_proba( self.X[:5] )
+		# likelihood = self.h.score( self.X[:5] )
 		
 		return self
 		

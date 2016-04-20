@@ -130,8 +130,8 @@ class Visualize:
 		self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
 		
 	#---------------------------------------
-	def plot(self, axs, axs_labels = None, color = 'r', marker = '.', fig = None):
-		self.do_plot( axs, axs_labels, color, marker )
+	def plot(self, axs, axs_labels = None, color = 'r', marker = '.', fig = None, label="Label"):
+		self.do_plot( axs, axs_labels, color, marker, label=label )
 		self.end_plot( fig )
 		
 	#---------------------------------------

@@ -5,7 +5,6 @@ from SignalFeatures import SignalFeatures
 from collections import defaultdict
 import datetime
 import time
-import os
 import math
 import pylab as plt
 
@@ -50,7 +49,6 @@ def projectRawData(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_
 			
 	# -----------------
 	viz = Visualize()
-	if not os.path.exists(path): os.makedirs(path)
 	for sr in sigReaders:
 		sig_times, sig_values, sig_y = dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"], dico[sr.signal_name+"PREDS"]
 		
@@ -98,7 +96,6 @@ def projectFeaturesData(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=
 		
 	# -----------------
 	viz = Visualize()
-	if not os.path.exists(path): os.makedirs(path)
 	for sr in sigReaders:
 		sig_times, sig_values, sig_y = dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"], dico[sr.signal_name+"PREDS"]
 		
@@ -108,11 +105,9 @@ def projectFeaturesData(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=
 
 # =================================================================
 def logInformations( id_combin, clust, path="" ):
-	if not os.path.exists(path): os.makedirs(path)
-	
 	print "id_combin", id_combin, "k", clust.k
 	
-	log = open( path+'_combins.txt', 'a' )
+	log = open( 'plots/combins.txt', 'a' )
 	log.write("COMB " + str(id_combin) + '\n')
 	if clust.ids is not None:
 		log.write(' - '.join(str(id) for id in clust.ids) + '\n')
@@ -121,6 +116,6 @@ def logInformations( id_combin, clust, path="" ):
 	log.write('\n')
 	log.close()
 	
-	clust.plot( fig = path+'/_clustering.png' )
+	clust.plot( fig = path+'_clustering.png' )
 
 # =================================================================

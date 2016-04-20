@@ -22,29 +22,25 @@ if __name__ == "__main__":
 	DATA = app.buildFeaturesData(sigReaders)
 	
 	ranges_comb = list(range( len(DATA[0]) )); random.shuffle(ranges_comb)
+	# features_combinations = combinations( ranges_comb, 3 )
+	features_combinations = range(2, len(DATA[0]))
 	
-	for k in range(2, 4):
-		combos=[]; qualities=[]
+	combos=[]; qualities=[]
+	for id_combin, n_features in enumerate( features_combinations ):
+		clust = Clustering(DATA, scale=True, features=n_features).dpgmm(k=5) # kmeans(k=2), gmm(k=2)
 		
-		# features_combinations = combinations( ranges_comb, 3 )
-		features_combinations = range(2, len(DATA[0]))
+		quality = clust.quality()
 		
-		for id_combin, n_features in enumerate( features_combinations ):
-			# clust = Clustering(DATA, scale=True, features=None).kmeans(k=k)
-			clust = Clustering(DATA, scale=True, features=n_features).kmeans(k=k)
-			
-			quality = clust.quality()
-			
-			path = 'plots/'+str(id_combin)+'/'
-			app.logInformations( id_combin=id_combin, clust=clust, path=path )
-			
-			app.projectFeaturesData(sigReaders, clust, path= path )
-			
-			combos.append( id_combin )
-			qualities.append(quality)
-			
-		viz.do_plot( [combos, qualities], axs_labels=['Combination (over features)', 'Quality'], marker="-", color=viz.cl(k-1), label="k="+str(k) )
-	viz.end_plot( fig="plots/quality-combos.png" )
+		if not os.path.exists('plots/'): os.makedirs('plots/')
+		path = 'plots/'+str(id_combin)+'_'+str(quality)+'_'
+		
+		app.logInformations( id_combin=id_combin, clust=clust, path=path )
+		# app.projectFeaturesData(sigReaders, clust, path= path )
+		
+		combos.append( id_combin )
+		qualities.append(quality)
+		
+	viz.plot( [combos, qualities], axs_labels=['Combination (over features)', 'Quality'], marker="-", label="id_combin="+str(id_combin), fig="plots/quality-combos.png" )
 	
 	# -----------------------------
 	'''
