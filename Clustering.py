@@ -114,9 +114,11 @@ class Clustering:
 		else: # if X is provided then use it with the predicted labels (clusters)
 			Y = self.predictAll(X)
 		
+		indexs = range(len(X)); shuffle(indexs)
+		X = np.array([ X[i] for i in indexs[:10000] ])
+		Y = np.array([ Y[i] for i in indexs[:10000] ])
+		
 		return silhouette_score(X, Y, metric='euclidean')
-		# return silhouette_score(X, Y, metric='cosine')
-		# return silhouette_score(X, Y, metric=self.normalized_distance)
 		
 	#---------------------------------------
 	# def normalized_distance(self, x1, x2):
