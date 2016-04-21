@@ -35,7 +35,7 @@ if __name__ == "__main__":
 		path = 'plots/'+str(id_combin)+'_'+str(quality)+'_'
 		
 		app.logInformations( id_combin=id_combin, clust=clust, path=path )
-		# app.projectFeaturesData(sigReaders, clust, path= path )
+		app.projectFeaturesData(sigReaders, clust, path= path )
 		
 		combos.append( id_combin )
 		qualities.append(quality)

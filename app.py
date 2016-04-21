@@ -99,9 +99,23 @@ def projectFeaturesData(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=
 	for sr in sigReaders:
 		sig_times, sig_values, sig_y = dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"], dico[sr.signal_name+"PREDS"]
 		
-		signame_labels = [ viz.colors[y%len(viz.colors)] for y in sig_y]
+		signame_labels = [ viz.colors[y%len(viz.colors)] for y in sig_y ]
 		figurename = path+sr.signal_name+"_"+str(time.time())+".png"
 		viz.plot( [sig_times, sig_values], axs_labels=['Time', sr.signal_name], color=signame_labels, fig=figurename )
+	
+	# -----------------
+	sigsTimeValues = [ ( dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"] ) for sr in sigReaders ]
+	sigsTimeValues.append( ( dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"PREDS"] ) ) # Add labels as an aditional timeseries
+	
+	times, axes = SignalMerge.merge( sigsTimeValues, interpolate=False )
+	axes = [ ax for ax in axes if all(not math.isnan(val) for val in ax) ]
+	
+	labels = axes[-1]
+	axes = axes[:-1]
+	
+	signame_labels = [ viz.colors[int(y)%len(viz.colors)] for y in labels ]
+	figurename = path+"_clustering_projection_AllSignals_"+str(time.time())+".png"
+	viz.plot( axes, color=signame_labels, fig=figurename )
 
 # =================================================================
 def logInformations( id_combin, clust, path="" ):
