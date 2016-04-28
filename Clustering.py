@@ -146,6 +146,8 @@ class Clustering:
 		X = np.array([ X[i] for i in indexs[:10000] ])
 		Y = np.array([ Y[i] for i in indexs[:10000] ])
 		
+		if len(set(Y)) < 2: return 0. # FIXME
+		
 		return silhouette_score(X, Y, metric='euclidean')
 		
 	#---------------------------------------

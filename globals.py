@@ -9,9 +9,14 @@ EXTREME = {"23913":[], "24707":[1774.9687499999998], "23676":[96.80000000000001]
 
 DURATION = 15 * 60*1000 # milliseconds
 
+MIN_SUBSEQUENCE_LEN = 100
+
 import datetime
 D_START_CLUSTERING = datetime.datetime(year=2013, month=12, day=1, hour=9, minute=0, second=0, microsecond=0)
-D_END_CLUSTERING = datetime.datetime(year=2013, month=12, day=30, hour=20, minute=0, second=0, microsecond=0)
+D_END_CLUSTERING = datetime.datetime(year=2013, month=12, day=5, hour=20, minute=0, second=0, microsecond=0)
 
 D_START_PROJECTION = datetime.datetime(year=2013, month=12, day=3, hour=9, minute=0, second=0, microsecond=0)
-D_END_PROJECTION = datetime.datetime(year=2013, month=12, day=3, hour=20, minute=0, second=0, microsecond=0)
+D_END_PROJECTION = datetime.datetime(year=2013, month=12, day=4, hour=12, minute=0, second=0, microsecond=0)
+
+D_START_MODEL_ESTIMARION = datetime.datetime(year=2013, month=12, day=3, hour=9, minute=0, second=0, microsecond=0)
+D_END_MODEL_ESTIMARION = datetime.datetime(year=2013, month=12, day=7, hour=12, minute=0, second=0, microsecond=0)

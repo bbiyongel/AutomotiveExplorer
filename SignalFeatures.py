@@ -56,7 +56,7 @@ class SignalFeatures(object):
 	# -------------------------------------------------------------
 	''' Extract some simple features from a timeseries '''
 	def extract(self, sig_values):
-		# '''
+		'''
 		mean = np.mean(sig_values)
 		median = np.median(sig_values)
 		rms = self.rms(sig_values)
@@ -92,12 +92,12 @@ class SignalFeatures(object):
 		
 		# res = features + features_deriv + ratios + histo + histo_deriv
 		res = features + features_deriv + ratios
-		# '''
-		
 		'''
+		
+		# '''
 		sig_values_deriv = np.gradient(sig_values)
 		res = [ self.fmap[fname]( sig_values_deriv if '_deriv' in fname else sig_values ) for fname in self.feature_names]
-		'''
+		# '''
 		
 		return [ float(v) for v in res ]
 	
