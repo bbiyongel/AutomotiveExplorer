@@ -2,218 +2,169 @@ import globals as gb
 from Visualize import Visualize
 from SignalMerge import SignalMerge
 from SignalFeatures import SignalFeatures
+from ModeTracking import ModeTracking
 from sklearn.metrics import silhouette_score
 from collections import defaultdict
 import datetime
 import time
 import os
+import sys
 import random
 import numpy as np
 import math
 import pylab as plt
 
-# =================================================================
-def buildRawData(sigReaders, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
-	sigsTimeValues = [ sr.getSignal(start=d_start, end=d_end) for sr in sigReaders ]
+class App:
+	def __init__(self, sigReaders):
+		self.sigReaders = sigReaders
 	
-	times, axes = SignalMerge.merge( sigsTimeValues )
-	axes = [ ax for ax in axes if all(not math.isnan(val) for val in ax) ]
-	# Visualize().plot(axes) # FOR DEBUG
-	
-	DATA = zip(*axes)
-	DATA = [list(x) for x in DATA]
-	
-	return DATA
-
-# =================================================================
-def projectRawData(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION, path=""):
-	sigsTimeValues = [ sr.getSignal(start=d_start, end=d_end) for sr in sigReaders ]
-	
-	times, axes = SignalMerge.merge( sigsTimeValues, interpolate=False )
-	axes = [ ax for ax in axes if all(not math.isnan(val) for val in ax) ]
-	# Visualize().plot(axes) # FOR DEBUG
-	
-	DATA = zip(*axes)
-	Y = clust.predictAll(DATA) # get the cluster id (i.e., cluster label) for each instance un DATA
-	
-	dico = defaultdict(list)
-	sigsNames = [ sr.signal_name for sr in sigReaders ]
-	
-	for signame, values in zip(sigsNames, axes):
-		dico[signame+"TIMES"] = times
-		dico[signame+"VALUES"] = values
-		dico[signame+"PREDS"] = Y
-	
-	# -----------------
-	viz = Visualize()
-	for sr in sigReaders:
-		sig_times, sig_values, sig_y = dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"], dico[sr.signal_name+"PREDS"]
+	# -----------------------------------------
+	def build_features_data(self, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
+		DATA = []
+		date = d_start
+		while date < d_end:
+			sys.stdout.write("\r%s" % "build_features_data --- " + str(date)); sys.stdout.flush()
+			sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION) for sr in self.sigReaders ]
+			date += datetime.timedelta(milliseconds=gb.DURATION)
+			
+			if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
+				continue
+			
+			x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ]) #Warning: Future calls to extractMany should take the signals in same order
+			DATA.append(x)
 		
-		signame_labels = [ viz.colors[y%len(viz.colors)] for y in sig_y]
-		figurename = path+sr.signal_name+"_"+str(time.time())+".png"
-		viz.plot( [sig_times, sig_values], axs_labels=['Time', sr.signal_name], color=signame_labels, fig=figurename )
+		return DATA
 		
-# =================================================================
-def buildFeaturesData(sigReaders, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
-	DATA = []
-	date = d_start
-	while date < d_end:
-		print date, " --- ", date + datetime.timedelta(milliseconds=gb.DURATION)
-		sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION) for sr in sigReaders ]
-		date += datetime.timedelta(milliseconds=gb.DURATION)
+	# -----------------------------------------
+	''' Predict from the clustering done in the feature space '''
+	def predict_fsp(self, d_start, d_end):
+		dico = defaultdict(list)
 		
-		if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]): #FIXME: add this validation directly to extractMany
-			continue
+		date = d_start
+		while date < d_end:
+			sys.stdout.write("\r%s" % "predict_fsp --- " + str(date)); sys.stdout.flush()
+			sigsNames = [ sr.signal_name for sr in self.sigReaders ] # FIXME: Out if the loop
+			sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION, dated=True) for sr in self.sigReaders ]
+			date += datetime.timedelta(milliseconds=gb.DURATION)
+			
+			if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
+				continue
+			
+			x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ])
+			y = self.clust.predict(x) # get the cluster id (i.e., cluster label)
+			for signame, (times, values) in zip(sigsNames, sigsTimeValues):
+				dico[signame+"TIMES"] += times
+				dico[signame+"VALUES"] += values
+				dico[signame+"PREDS"] += [y for _ in values]
 		
-		x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ]) #Warning: Future calls to extractMany should take the signals in same order
-		DATA.append(x)
-	
-	return DATA
-	
-# =================================================================
-def getLikelihoodsTransitions(sigReaders, clust, d_start=gb.D_START_MODEL_ESTIMARION, d_end=gb.D_END_MODEL_ESTIMARION, path=""):
-	# ----------------- # This is the same as the first part of projectFeaturesData(...)
-	dico = defaultdict(list)
-	
-	date = d_start
-	while date < d_end:
-		print "PROJECTION - MODEL ESTIMATION", date, " --- ", date + datetime.timedelta(milliseconds=gb.DURATION)
-		sigsNames = [ sr.signal_name for sr in sigReaders ] # FIXME: Out if the loop
-		sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION) for sr in sigReaders ]
-		date += datetime.timedelta(milliseconds=gb.DURATION)
+		# ----------------- Merging signals
+		sigsTimeValues = [ ( dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"] ) for sr in self.sigReaders ]
+		sigsTimeValues.append( ( dico[self.sigReaders[0].signal_name+"TIMES"], dico[self.sigReaders[0].signal_name+"PREDS"] ) ) # Add labels as an aditional timeseries
+		if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
+			return [], [], []
 		
-		if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]): #FIXME: add this validation directly to extractMany
-			continue
+		times, axes = SignalMerge.merge( sigsTimeValues, interpolate=False )
 		
-		x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ])
-		y = clust.predict(x) # get the cluster id (i.e., cluster label)
-		for signame, (times, values) in zip(sigsNames, sigsTimeValues):
-			dico[signame+"TIMES"] += times
-			dico[signame+"VALUES"] += values
-			dico[signame+"PREDS"] += [y for _ in values]
-	
-	# ----------------- Transition model
-	sr = sigReaders[0] # Transitions do not depend on the signal so we just use one of the signals
-	seq_labels = dico[sr.signal_name+"PREDS"]
-	uniq_labels = list(set(seq_labels))
-	
-	transitions = defaultdict(float)
-
-	for t in range(1, len(seq_labels)):
-		yi = seq_labels[t-1]
-		yj = seq_labels[t]
-		transitions[str(int(yi))+'-'+str(int(yj))] += 1
-	
-	normalizer = { str(int(yi)) : np.sum([ transitions[str(int(yi))+'-'+str(int(yk))] for yk in uniq_labels ]) for yi in uniq_labels }
-	for yi in uniq_labels:
-		for yj in uniq_labels:
-			transitions[str(int(yi))+'-'+str(int(yj))] = transitions[str(int(yi))+'-'+str(int(yj))] / normalizer[str(int(yi))]
-	
-	print "transitions", transitions
-	
-	# ----------------- Likelihood model
-	likelihoods = [ computeLikelihood( dico[sr.signal_name+"VALUES"] , dico[sr.signal_name+"PREDS"]) for sr in sigReaders ]
-	print "likelihoods lens = ", [len(lkh) for lkh in likelihoods]
-	
-	# ----------------- Tracking equation test
-	sigsTimeValues = [ ( dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"] ) for sr in sigReaders ]
-	sigsTimeValues.append( ( dico[sigReaders[0].signal_name+"TIMES"], dico[sigReaders[0].signal_name+"PREDS"] ) ) # Add labels as an aditional timeseries
-	
-	times, axes = SignalMerge.merge( sigsTimeValues, interpolate=False )
-	axes = [ ax for ax in axes if all(not math.isnan(val) for val in ax) ]
-	
-	labels = [ int(y) for y in axes[-1] ]
-	axes = axes[:-1]
-	
-	X = zip(*axes)
-	
-	for x in X:
-		likeli_prod = np.product([ lk[x[ilk], y] for ilk, lk in enumerate(likelihoods) ])
-		print likeli_prod
-
-# =================================================================
-def computeLikelihood(X, Y):
-	foo = {}
-
-	for (x, y) in zip(X, Y):
-		bar = foo.setdefault(y, {})
-		bar[x] = bar.setdefault(x, 0) + 1
-
-	def prob(x, y, probDict):
-		return 1.*probDict[y].get(x, 0) / np.sum(list(probDict[y].values()))
-
-	# likelihood = defaultdict(float)
-	likelihood = defaultdict(float)
-	for x in list(set(X)):
-		for y in list(set(Y)):
-			# likelihood[str(x)+'-'+str(y)] = prob(x, y, foo)
-			likelihood[x, y] = prob(x, y, foo)
-	
-	return likelihood
-# =================================================================
-def projectFeaturesData(sigReaders, clust, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION, path=""):
-	dico = defaultdict(list)
-	
-	date = d_start
-	while date < d_end:
-		print "PROJECTION", date, " --- ", date + datetime.timedelta(milliseconds=gb.DURATION)
-		sigsNames = [ sr.signal_name for sr in sigReaders ] # FIXME: Out if the loop
-		sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION) for sr in sigReaders ]
-		date += datetime.timedelta(milliseconds=gb.DURATION)
+		labels = [ int(y) for y in axes[-1] ]
+		axes = axes[:-1]
 		
-		if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]): #FIXME: add this validation directly to extractMany
-			continue
+		return times, axes, labels
+	
+	# -----------------------------------------
+	def predict_ssp(self, d_start, d_end):
+		sigsTimeValues = [ sr.getSignal(start=d_start, end=d_end, dated=True) for sr in self.sigReaders ]
+		if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
+			return [], [], []
 		
-		x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ])
-		y = clust.predict(x) # get the cluster id (i.e., cluster label)
-		for signame, (times, values) in zip(sigsNames, sigsTimeValues):
-			dico[signame+"TIMES"] += times
-			dico[signame+"VALUES"] += values
-			dico[signame+"PREDS"] += [y for _ in values]
+		times, axes = SignalMerge.merge( sigsTimeValues, interpolate=False )
 		
-	# -----------------
-	viz = Visualize()
-	for sr in sigReaders:
-		sig_times, sig_values, sig_y = dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"], dico[sr.signal_name+"PREDS"]
+		X = zip(*axes)
+		labels = []
 		
-		signame_labels = [ viz.colors[y%len(viz.colors)] for y in sig_y ]
-		figurename = path+sr.signal_name+"_"+str(time.time())+".png"
-		viz.plot( [sig_times, sig_values], axs_labels=['Time', sr.signal_name], color=signame_labels, fig=figurename )
-	
-	# -----------------
-	sigsTimeValues = [ ( dico[sr.signal_name+"TIMES"], dico[sr.signal_name+"VALUES"] ) for sr in sigReaders ]
-	sigsTimeValues.append( ( dico[sigReaders[0].signal_name+"TIMES"], dico[sigReaders[0].signal_name+"PREDS"] ) ) # Add labels as an aditional timeseries
-	
-	times, axes = SignalMerge.merge( sigsTimeValues, interpolate=False )
-	axes = [ ax for ax in axes if all(not math.isnan(val) for val in ax) ]
-	
-	labels = [ int(y) for y in axes[-1] ]
-	axes = axes[:-1]
-	
-	signame_labels = [ viz.colors[y%len(viz.colors)] for y in labels ]
-	figurename = path+"_clustering_projection_AllSignals_"+str(time.time())+".png"
-	viz.plot( axes, color=signame_labels, fig=figurename )
-	
-	X = zip(*axes)
-	indexs = range(len(X)); random.shuffle(indexs)
-	X = np.array([ X[i] for i in indexs[:10000] ])
-	Y = np.array([ labels[i] for i in indexs[:10000] ])
-	
-	return silhouette_score( X, Y, metric='euclidean' )
-
-# =================================================================
-def logInformations( id_combin, clust, path="" ):
-	print "id_combin", id_combin, "k", clust.k
-	
-	log = open( os.path.split(path)[0]+'/combins.txt', 'a' )
-	log.write("COMB " + str(id_combin) + '\n')
-	if clust.ids is not None:
-		log.write(' - '.join(str(id) for id in clust.ids) + '\n')
+		for t, x in enumerate(X):
+			pred_mode = self.tracker.track(x)
+			labels.append(pred_mode)
+			# print "predict_ssp", "\t pred_mode", pred_mode, "\t progress", t*100./len(X), times[t]
+			sys.stdout.write("\r%s" % "predict_ssp \t pred_mode " + str(pred_mode) + "\t progress " + str(t*100./len(X)) + " " + str(times[t])); sys.stdout.flush()
 		
-	log.write(' - '.join( SignalFeatures().getFeaturesName(clust.ids) ) + '\n')
-	log.write('\n')
-	log.close()
+		return times, axes, labels
+		
+	# -----------------------------------------
+	def plot_colored_signals(self, times, axes, labels, path, figname):
+		viz = Visualize()
+		signame_labels = [ viz.colors[y%len(viz.colors)] for y in labels ]
+		
+		for isr, sr in enumerate(self.sigReaders):
+			figurename = path+sr.signal_name+"_"+str(time.time())+figname
+			viz.plot( [ times, axes[isr] ], axs_labels=['Time', sr.signal_name], color=signame_labels, fig=figurename )
+			
+		figurename = path+"_clustering_projection_AllSignals_"+str(time.time())+figname
+		viz.plot( axes, color=signame_labels, fig=figurename )
 	
-	clust.plot( fig = path+'_clustering.png' )
+	# -----------------------------------------
+	def init_clust_tracker(self, clust, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
+		self.clust = clust
+		self.tracker = ModeTracking()
+		
+		# ------------- Initialize the Transition and Likelihoods based on the clustering result
+		step = 86400000 * 3 # read chunk by chunk of (each chunk is of 'step' milliseconds)
+		date = d_start
+		while date < d_end:
+			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + datetime.timedelta(milliseconds=step))
+			date = date + datetime.timedelta(milliseconds=step)
+			
+			self.tracker.update_transition( labels )
+			self.tracker.update_likelihoods( axes, labels )
+		
+	# -----------------------------------------
+	def track_and_update(self, d_start=gb.D_START_TRACKING, d_end=gb.D_END_TRACKING):
+		step = 86400000 * 3  # read chunk by chunk of (each chunk is of 'step' milliseconds)
+		date = d_start
+		while date < d_end:
+			times, axes, labels = self.predict_ssp(d_start=d_start, d_end=date + datetime.timedelta(milliseconds=step))
+			date = date + datetime.timedelta(milliseconds=step)
+			print "track_and_update", date
+			
+			self.tracker.update_transition( labels )
+			self.tracker.update_likelihoods( axes, labels )
+			
+		
+	# -----------------------------------------
+	def projecting(self, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION, path=""):
+		times, axes, labels = self.predict_fsp(d_start=d_start, d_end=d_end)
+		self.plot_colored_signals(times, axes, labels, path, figname="_FeatureSpace.png")
+		silhouette_fsp = None#self.silhouette(axes, labels)
+		
+		times, axes, labels = self.predict_ssp(d_start=d_start, d_end=d_end)
+		self.plot_colored_signals(times, axes, labels, path, figname="_SignalSpace.png")
+		silhouette_ssp = None#self.silhouette(axes, labels)
+		
+		return silhouette_fsp, silhouette_ssp
+		
+	# -----------------------------------------
+	def silhouette(self, axes, labels):
+		limit = 10000 # FIXME: this is a quick hack to avoid memory error (for big amount of data)
+		X = zip(*axes)
+		indexs = range(len(X))
+		random.shuffle(indexs)
+		X = np.array([ X[i] for i in indexs[:limit] ])
+		Y = np.array([ labels[i] for i in indexs[:limit] ])
+		
+		return silhouette_score( X, Y, metric='euclidean' )
+		
+	# -----------------------------------------
+	def logInformations(self, id_combin, clust, path="" ):
+		print "id_combin", id_combin, "k", clust.k
+		
+		log = open( os.path.split(path)[0]+'/combins.txt', 'a' )
+		log.write("COMB " + str(id_combin) + '\n')
+		if clust.ids is not None:
+			log.write(' - '.join(str(id) for id in clust.ids) + '\n')
+			
+		log.write(' - '.join( SignalFeatures().getFeaturesName(clust.ids) ) + '\n')
+		log.write('\n')
+		log.close()
+		
+		clust.plot( fig = path+'_clustering.png' )
 
 # =================================================================

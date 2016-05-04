@@ -56,48 +56,8 @@ class SignalFeatures(object):
 	# -------------------------------------------------------------
 	''' Extract some simple features from a timeseries '''
 	def extract(self, sig_values):
-		'''
-		mean = np.mean(sig_values)
-		median = np.median(sig_values)
-		rms = self.rms(sig_values)
-		std = np.std(sig_values)
-		maximum = max(sig_values)
-		minimum = min(sig_values)
-		skewness = scipy.stats.skew(sig_values)
-		kurtosis = scipy.stats.kurtosis(sig_values)
-		dominantFreq = self.dominantFrequency(sig_values)
-		histo = self.histogram(sig_values)
-		
-		sig_values_deriv = np.gradient(sig_values)
-		
-		mean_deriv = np.mean(sig_values_deriv)
-		median_deriv = np.median(sig_values_deriv)
-		rms_deriv = self.rms(sig_values_deriv)
-		std_deriv = np.std(sig_values_deriv)
-		maximum_deriv = max(sig_values_deriv)
-		minimum_deriv = min(sig_values_deriv)
-		skewness_deriv = scipy.stats.skew(sig_values_deriv)
-		kurtosis_deriv = scipy.stats.kurtosis(sig_values_deriv)
-		dominantFreq_deriv = self.dominantFrequency(sig_values_deriv)
-		histo_deriv = self.histogram(sig_values_deriv)
-		
-		decrease_ratio = self.decrease_ratio(sig_values_deriv)
-		increase_ratio = self.increase_ratio(sig_values_deriv)
-		
-		# ----------------------
-		features = [mean, median, rms, std, maximum, minimum, skewness, kurtosis, dominantFreq]
-		features_deriv = [mean_deriv, median_deriv, rms_deriv, std_deriv, maximum_deriv, minimum_deriv, skewness_deriv, kurtosis_deriv, dominantFreq_deriv]
-		
-		ratios = [decrease_ratio, increase_ratio]
-		
-		# res = features + features_deriv + ratios + histo + histo_deriv
-		res = features + features_deriv + ratios
-		'''
-		
-		# '''
 		sig_values_deriv = np.gradient(sig_values)
 		res = [ self.fmap[fname]( sig_values_deriv if '_deriv' in fname else sig_values ) for fname in self.feature_names]
-		# '''
 		
 		return [ float(v) for v in res ]
 	

@@ -79,7 +79,7 @@ class Clustering:
 	def dpgmm(self, k=10, alpha=1.0):
 		self.h = DPGMM(n_components=k, alpha=alpha, random_state = self.random_seed).fit( self.X )
 		self.Y = self.h.predict( self.X )
-		self.k = k # this is the max number of components
+		self.k = k # this is the max number of components in dpgmm
 		
 		#TODO
 		# posterior = self.h.predict_proba( self.X[:5] )

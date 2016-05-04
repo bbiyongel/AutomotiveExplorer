@@ -1,8 +1,10 @@
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pylab as pl
 import matplotlib
+from matplotlib.dates import MinuteLocator, DayLocator, HourLocator, DateFormatter, drange, MonthLocator
 from sklearn.decomposition import PCA
 from sklearn import manifold
 from sklearn.metrics import euclidean_distances
@@ -18,7 +20,7 @@ class Visualize:
 		self.s = 20
 		
 		self.plots = None
-		self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
+		# self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
 		self.colors = ['r', 'b', 'g','m', 'y', 'k']
 		
 	#---------------------------------------
@@ -101,6 +103,12 @@ class Visualize:
 		if self.plots is None:
 			self.start_plot( axs_labels )
 		
+		if all([ isinstance(v, datetime.date) for v in axs[0] ]):
+			self.plots.set_xlim([ min(axs[0]), max(axs[0]) ]) 
+			plt.gcf().autofmt_xdate()
+			self.plots.xaxis.set_major_locator(MinuteLocator(interval=15))
+			self.plots.xaxis.set_major_formatter( DateFormatter("%Y-%m-%d %H:%M") )
+			
 		if marker == '-':
 			self.plots.plot( *axs, c = color, lw = lw, label=label )
 		else:
@@ -108,16 +116,6 @@ class Visualize:
 			
 		self.plots.legend(loc='best', ncol=2)
 		
-		# Re adjusting the xrange, yrange and zrange limits FIXME
-		'''
-		min_x, max_x = self.xyz_range['x']; self.xyz_range['x'] = [ min( min_x, min(axs[0]) ), max( max_x, max(axs[0]) ) ]
-		min_y, max_y = self.xyz_range['y']; self.xyz_range['y'] = [ min( min_y, min(axs[1]) ), max( max_y, max(axs[1]) ) ]
-		self.plots.set_xlim( self.xyz_range['x'] )
-		self.plots.set_ylim( self.xyz_range['y'] )
-		if len(axs) >= 3:
-			min_z, max_z = self.xyz_range['z']; self.xyz_range['z'] = [ min( min_z, min(axs[2]) ), max( max_z, max(axs[2]) ) ]
-			self.plots.set_zlim( self.xyz_range['z'] )
-		'''
 	#---------------------------------------
 	def end_plot(self, fig = None):
 		if fig is None: plt.show()
@@ -127,7 +125,7 @@ class Visualize:
 		plt.close()
 		
 		self.plots = None
-		self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
+		# self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
 		
 	#---------------------------------------
 	def plot(self, axs, axs_labels = None, color = 'r', marker = '.', fig = None, label="Label"):

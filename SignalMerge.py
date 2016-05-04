@@ -1,4 +1,5 @@
 import pandas as pd
+import math
 
 class SignalMerge(object):
 	def __init__(self):
@@ -32,7 +33,13 @@ class SignalMerge(object):
 		
 		merged_data = df.get_values().tolist()
 		axes = zip(*merged_data)
-		return axes[0], axes[1:]
+		
+		times = axes[0]
+		axes = axes[1:]
+		
+		axes = [ ax for ax in axes if all(not math.isnan(val) for val in ax) ]
+		
+		return times, axes
 		
 
 
