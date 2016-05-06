@@ -71,7 +71,7 @@ class App:
 		return times, axes, labels
 	
 	# -----------------------------------------
-	def predict_ssp(self, d_start, d_end):
+	def predict_ssp(self, d_start, d_end, update=False):
 		sigsTimeValues = [ sr.getSignal(start=d_start, end=d_end, dated=True) for sr in self.sigReaders ]
 		if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
 			return [], [], []
@@ -82,9 +82,8 @@ class App:
 		labels = []
 		
 		for t, x in enumerate(X):
-			pred_mode = self.tracker.track(x)
+			pred_mode = self.tracker.track(x, update=update)
 			labels.append(pred_mode)
-			# print "predict_ssp", "\t pred_mode", pred_mode, "\t progress", t*100./len(X), times[t]
 			sys.stdout.write("\r%s" % "predict_ssp \t pred_mode " + str(pred_mode) + "\t progress " + str(t*100./len(X)) + " " + str(times[t])); sys.stdout.flush()
 		
 		return times, axes, labels
@@ -94,6 +93,9 @@ class App:
 		viz = Visualize()
 		signame_labels = [ viz.colors[y%len(viz.colors)] for y in labels ]
 		
+		if len(axes) < len(self.sigReaders):
+			return
+			
 		for isr, sr in enumerate(self.sigReaders):
 			figurename = path+sr.signal_name+"_"+str(time.time())+figname
 			viz.plot( [ times, axes[isr] ], axs_labels=['Time', sr.signal_name], color=signame_labels, fig=figurename )
@@ -102,7 +104,9 @@ class App:
 		viz.plot( axes, color=signame_labels, fig=figurename )
 	
 	# -----------------------------------------
-	def init_clust_tracker(self, clust, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
+	def init_clust_tracker(self, clust, d_start=gb.D_START_INIT_TRACKER, d_end=gb.D_END_INIT_TRACKER):
+		print "\n --------- init_clust_tracker ..."
+		
 		self.clust = clust
 		self.tracker = ModeTracking()
 		
@@ -117,33 +121,30 @@ class App:
 			self.tracker.update_likelihoods( axes, labels )
 		
 	# -----------------------------------------
-	def track_and_update(self, d_start=gb.D_START_TRACKING, d_end=gb.D_END_TRACKING):
-		step = 86400000 * 3  # read chunk by chunk of (each chunk is of 'step' milliseconds)
+	def tracking(self, d_start=gb.D_START_TRACKING, d_end=gb.D_END_TRACKING, path=""):
+		print "\n --------- tracking ..."
+		
+		silhouette_fsp, silhouette_ssp, counter = 0, 0, 0
+		
+		step = 60 * 60*1000  # read chunk by chunk of (each chunk is of 'step' milliseconds)
 		date = d_start
 		while date < d_end:
-			times, axes, labels = self.predict_ssp(d_start=d_start, d_end=date + datetime.timedelta(milliseconds=step))
+			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + datetime.timedelta(milliseconds=step))
+			self.plot_colored_signals(times, axes, labels, path, figname="_FSP.png")
+			silhouette_fsp += 0.#self.silhouette(axes, labels)
+			
+			times, axes, labels = self.predict_ssp(d_start=date, d_end=date + datetime.timedelta(milliseconds=step), update=True)
+			self.plot_colored_signals(times, axes, labels, path, figname="_SSP.png")
+			silhouette_ssp += 0.#self.silhouette(axes, labels)
+			
 			date = date + datetime.timedelta(milliseconds=step)
-			print "track_and_update", date
+			counter += 1
 			
-			self.tracker.update_transition( labels )
-			self.tracker.update_likelihoods( axes, labels )
-			
-		
-	# -----------------------------------------
-	def projecting(self, d_start=gb.D_START_PROJECTION, d_end=gb.D_END_PROJECTION, path=""):
-		times, axes, labels = self.predict_fsp(d_start=d_start, d_end=d_end)
-		self.plot_colored_signals(times, axes, labels, path, figname="_FeatureSpace.png")
-		silhouette_fsp = None#self.silhouette(axes, labels)
-		
-		times, axes, labels = self.predict_ssp(d_start=d_start, d_end=d_end)
-		self.plot_colored_signals(times, axes, labels, path, figname="_SignalSpace.png")
-		silhouette_ssp = None#self.silhouette(axes, labels)
-		
-		return silhouette_fsp, silhouette_ssp
+		return silhouette_fsp/counter, silhouette_ssp/counter
 		
 	# -----------------------------------------
 	def silhouette(self, axes, labels):
-		limit = 10000 # FIXME: this is a quick hack to avoid memory error (for big amount of data)
+		limit = 10000 # FIXME: this is a quick hack to avoid memory errors (for big amount of data)
 		X = zip(*axes)
 		indexs = range(len(X))
 		random.shuffle(indexs)
@@ -154,7 +155,7 @@ class App:
 		
 	# -----------------------------------------
 	def logInformations(self, id_combin, clust, path="" ):
-		print "id_combin", id_combin, "k", clust.k
+		print "\n id_combin", id_combin, "k", clust.k
 		
 		log = open( os.path.split(path)[0]+'/combins.txt', 'a' )
 		log.write("COMB " + str(id_combin) + '\n')

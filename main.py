@@ -41,8 +41,7 @@ if __name__ == "__main__":
 		path = gb.PLOT_PATH+str(id_combin)+'_'+str(quality)+'_'
 		app.logInformations( id_combin=id_combin, clust=clust, path=path )
 		
-		app.track_and_update()
-		qualityFSP, qualitySSP = app.projecting(path=path)
+		qualityFSP, qualitySSP = app.tracking(path=path)
 		
 		combos.append( id_combin )
 		qualitiesFSP.append(qualityFSP)

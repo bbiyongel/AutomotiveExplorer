@@ -9,23 +9,38 @@ class ModeTracking(object):
 		self.likelihoods = [ LikelihoodProbability() for _ in range(nb_sigs) ]
 		
 		self.uniq_labels = []
-		self.posterior_current = []
-		
+		self.prev_posterior = []
+		self.prev_y = None
 		
 	# ------------------------------------------------------
 	''' ... '''
-	def track(self, x):
+	def track(self, x, update=False):
 		posterior = []
 		
 		for mode in self.uniq_labels:
 			likeli_prod = np.product([ lk.proba( x[ilk], mode ) for ilk, lk in enumerate(self.likelihoods) ])
-			sum_previous = np.sum([ self.transition.proba(mode_prev, mode) * self.posterior_current[id] for id, mode_prev in enumerate(self.uniq_labels) ])
+			sum_previous = np.sum([ self.transition.proba(mode_prev, mode) * self.prev_posterior[id] for id, mode_prev in enumerate(self.uniq_labels) ])
 			posterior.append( likeli_prod * sum_previous )
-		
+			
 		posterior = [ v/np.sum(posterior) for v in posterior ]
-		self.posterior_current = posterior[:]
+		self.prev_posterior = posterior[:]
 		
-		return self.uniq_labels[ np.argmax(posterior) ]
+		predicted_mode = self.uniq_labels[ np.argmax(posterior) ]
+		
+		# -------------
+		# if update and self.prev_y is not None:
+			# self.update_transition( [self.prev_y, predicted_mode] )
+			# self.update_likelihoods( x,  predicted_mode )
+		# self.prev_y = predicted_mode
+		# -------------
+		if update and self.prev_y is not None:
+			self.update_transition( [self.prev_y, predicted_mode] )
+			self.update_likelihoods( x,  predicted_mode )
+			
+		self.prev_y = predicted_mode
+		# -------------
+		
+		return predicted_mode
 	
 	# ------------------------------------------------------
 	''' '''
@@ -50,7 +65,7 @@ class ModeTracking(object):
 		set_labels = set(labels)
 		new_labels = [ y for y in set_labels if y not in self.uniq_labels ]
 		self.uniq_labels += new_labels
-		self.posterior_current += [ 1. / len(self.uniq_labels) for _ in new_labels ]
+		self.prev_posterior += [ 1. / len(self.uniq_labels) for _ in new_labels ]
 	
 	# ------------------------------------------------------
 	
