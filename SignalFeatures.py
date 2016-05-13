@@ -6,19 +6,21 @@ import globals as gb
 class SignalFeatures(object):
 	def __init__(self):
 		# The name of features to be extracted on the derivative of the signal, must end with '_deriv'
-		self.feature_names = [
-		"mean", "median", "rms", "std", "maximum", "minimum", "skewness", "kurtosis", "dominantFreq", 
-		"mean_deriv", "median_deriv", "rms_deriv", "std_deriv", "maximum_deriv", "minimum_deriv", "skewness_deriv", "kurtosis_deriv", "dominantFreq_deriv",  
-		"decrease_ratio_deriv", "increase_ratio_deriv"#, "histo", "histo_deriv"
-		]
 		
-		self.feature_funcs = [
-		np.mean, np.median, self.rms, np.std, max, min, scipy.stats.skew, scipy.stats.kurtosis, self.dominantFrequency, 
-		np.mean, np.median, self.rms, np.std, max, min, scipy.stats.skew, scipy.stats.kurtosis, self.dominantFrequency, 
-		self.decrease_ratio, self.increase_ratio#, self.histogram, self.histogram
-		]
+		# self.fmap = {
+		# "mean":np.mean, "median":np.median, "rms":self.rms, "std":np.std, "maximum":max, "minimum":min, "skewness":scipy.stats.skew, "kurtosis":scipy.stats.kurtosis, "dominantFreq":self.dominantFrequency, 
+		# "mean_deriv":np.mean, "median_deriv":np.median, "rms_deriv":self.rms, "std_deriv":np.std, "maximum_deriv":max, "minimum_deriv":min, "skewness_deriv":scipy.stats.skew, "kurtosis_deriv":scipy.stats.kurtosis, "dominantFreq_deriv":self.dominantFrequency, 
+		# "decrease_ratio_deriv":self.decrease_ratio, "increase_ratio_deriv":self.increase_ratio#, "histo":self.histogram, "histo_deriv":self.histogram
+		# }
 		
-		self.fmap = { fname : fcall for fname, fcall in zip(self.feature_names, self.feature_funcs) }
+		self.fmap = {
+		"mean":np.mean, "median":np.median, "rms":self.rms, "std":np.std, "maximum":max, "minimum":min, "skewness":scipy.stats.skew, "kurtosis":scipy.stats.kurtosis, "dominantFreq":self.dominantFrequency, 
+		"mean_deriv":np.mean, "median_deriv":np.median, "rms_deriv":self.rms, "std_deriv":np.std, "maximum_deriv":max, "minimum_deriv":min, "skewness_deriv":scipy.stats.skew, "kurtosis_deriv":scipy.stats.kurtosis, "dominantFreq_deriv":self.dominantFrequency, 
+		"decrease_ratio_deriv":self.decrease_ratio, "increase_ratio_deriv":self.increase_ratio#, "histo":self.histogram, "histo_deriv":self.histogram
+		}
+		
+		
+		self.feature_names = self.fmap.keys()
 		
 	# -------------------------------------------------------------
 	def dominantFrequency(self, L):
@@ -40,10 +42,21 @@ class SignalFeatures(object):
 		return len([v for v in L if v > 0]) * 1. / len(L)
 		
 	# -------------------------------------------------------------
+	# FIXME: This is a draft function which should be improved
 	def histogram(self, L):
-		histo, _ = np.histogram( L, bins=3 )
-		histo = histo.tolist()
+		histo, _ = np.histogram( L, bins=10 ); histo = histo.tolist()
 		return histo
+		
+	def histogram0(self, L): return self.histogram(L)[0]
+	def histogram1(self, L): return self.histogram(L)[1]
+	def histogram2(self, L): return self.histogram(L)[2]
+	def histogram3(self, L): return self.histogram(L)[3]
+	def histogram4(self, L): return self.histogram(L)[4]
+	def histogram5(self, L): return self.histogram(L)[5]
+	def histogram6(self, L): return self.histogram(L)[6]
+	def histogram7(self, L): return self.histogram(L)[7]
+	def histogram8(self, L): return self.histogram(L)[8]
+	def histogram9(self, L): return self.histogram(L)[9]
 		
 	# -------------------------------------------------------------
 	def increase_ratio(self, L):

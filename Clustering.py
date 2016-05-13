@@ -143,8 +143,8 @@ class Clustering:
 			Y = self.predictAll(X)
 		
 		indexs = range(len(X)); shuffle(indexs)
-		X = np.array([ X[i] for i in indexs[:10000] ])
-		Y = np.array([ Y[i] for i in indexs[:10000] ])
+		X = np.array([ X[i] for i in indexs[:5000] ])
+		Y = np.array([ Y[i] for i in indexs[:5000] ])
 		
 		if len(set(Y)) < 2: return 0. # FIXME
 		

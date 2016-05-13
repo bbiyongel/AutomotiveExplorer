@@ -111,7 +111,7 @@ class App:
 		self.tracker = ModeTracking()
 		
 		# ------------- Initialize the Transition and Likelihoods based on the clustering result
-		step = 86400000 * 3 # read chunk by chunk of (each chunk is of 'step' milliseconds)
+		step = 86400000 * 1 # read chunk by chunk of (each chunk is of 'step' milliseconds)
 		date = d_start
 		while date < d_end:
 			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + datetime.timedelta(milliseconds=step))
@@ -124,7 +124,7 @@ class App:
 	def tracking(self, d_start=gb.D_START_TRACKING, d_end=gb.D_END_TRACKING, path=""):
 		print "\n --------- tracking ..."
 		
-		silhouette_fsp, silhouette_ssp, counter = 0, 0, 0
+		silhouette_fsp, silhouette_ssp, counter = 0, 0, 1
 		
 		step = 60 * 60*1000  # read chunk by chunk of (each chunk is of 'step' milliseconds)
 		date = d_start

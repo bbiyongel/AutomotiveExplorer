@@ -11,10 +11,15 @@ import warnings
 import numpy as np
 
 # =================================================================
-def getCombinations( L, nb=20, length=60 ):
+def getCombinations( L, nb=20, length=3 ):
 	combs = set()
+	counter = 0
 	while len(combs) < nb:
 		combs.add( tuple(sorted(random.sample(L, length))) )
+		
+		counter += 1
+		if counter > nb+10: break # FIXME: a quick hack to avoid looping for a long time
+		
 	return list(combs)
 	
 # =================================================================
@@ -27,18 +32,22 @@ if __name__ == "__main__":
 	app = App(sigReaders)
 	DATA = app.build_features_data()
 	
-	features_combinations = getCombinations( range(len(DATA[0])) )
+	k = 4
+	
+	features_combinations = getCombinations( range(len(DATA[0])), nb=20, length=2 )
 	# features_combinations = range(2, len(DATA[0]))
 	
 	combos=[]; qualitiesFSP=[]; qualitiesSSP=[]
 	for id_combin, n_features in enumerate( features_combinations ):
-		clust = Clustering(DATA, scale=True, features=None).dpgmm(k=3) # kmeans(k=2), gmm(k=2)
+		clust = Clustering(DATA, scale=True, features=None).dpgmm(k=k) # kmeans, dpgmm
+		# clust = Clustering(DATA, scale=True, features=n_features).gmm(k=k)
 		
 		app.init_clust_tracker(clust)
 		
-		quality = clust.quality()
-		if not os.path.exists(gb.PLOT_PATH): os.makedirs(gb.PLOT_PATH)
-		path = gb.PLOT_PATH+str(id_combin)+'_'+str(quality)+'_'
+		PLOT_PATH = gb.PLOT_PATH + str(id_combin) + '/'
+		
+		if not os.path.exists(PLOT_PATH): os.makedirs(PLOT_PATH)
+		path = PLOT_PATH+str(id_combin)+'_'
 		app.logInformations( id_combin=id_combin, clust=clust, path=path )
 		
 		qualityFSP, qualitySSP = app.tracking(path=path)
