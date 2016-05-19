@@ -3,6 +3,7 @@ from App import App
 from Visualize import Visualize
 from SignalReader import SignalReader
 from Clustering import Clustering
+from ArtificialData import ArtificialData
 import os
 import math
 import random
@@ -24,6 +25,13 @@ def getCombinations( L, nb=20, length=3 ):
 	
 # =================================================================
 if __name__ == "__main__":
+	art = ArtificialData()
+	# art.randomized_line(n=10, interval=(80,100))
+	# art.run()
+	art.city(period=15*60, agressive=False, coldEng=True)
+	exit(0)
+	
+	# -----------------------------
 	warnings.simplefilter(action = "ignore", category = FutureWarning)
 	dbfiles = [gb.DATA_PATH + gb.VEHICLE + "_" + sig_id + ".db" for sig_id in gb.SIG_IDS]
 	sigReaders = [ SignalReader(dbfile, preprocess=False) for dbfile in dbfiles ]
