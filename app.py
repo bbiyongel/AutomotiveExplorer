@@ -3,7 +3,7 @@ from Visualize import Visualize
 from SignalMerge import SignalMerge
 from SignalFeatures import SignalFeatures
 from ModeTracking import ModeTracking
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, adjusted_rand_score
 from collections import defaultdict
 import datetime
 import time
@@ -40,12 +40,15 @@ class App:
 	def predict_fsp(self, d_start, d_end):
 		dico = defaultdict(list)
 		
+		timedelta = datetime.timedelta(milliseconds=gb.DURATION)
 		date = d_start
 		while date < d_end:
 			sys.stdout.write("\r%s" % "predict_fsp --- " + str(date)); sys.stdout.flush()
 			sigsNames = [ sr.signal_name for sr in self.sigReaders ] # FIXME: Out if the loop
-			sigsTimeValues = [ sr.getSignal(start=date, end=gb.DURATION, dated=True) for sr in self.sigReaders ]
-			date += datetime.timedelta(milliseconds=gb.DURATION)
+			
+			if date + timedelta >= d_end: timedelta = d_end - date
+			sigsTimeValues = [ sr.getSignal(start=date, end=date + timedelta, dated=gb.DATED) for sr in self.sigReaders ]
+			date += timedelta
 			
 			if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
 				continue
@@ -72,7 +75,7 @@ class App:
 	
 	# -----------------------------------------
 	def predict_ssp(self, d_start, d_end, update=False):
-		sigsTimeValues = [ sr.getSignal(start=d_start, end=d_end, dated=True) for sr in self.sigReaders ]
+		sigsTimeValues = [ sr.getSignal(start=d_start, end=d_end, dated=gb.DATED) for sr in self.sigReaders ]
 		if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
 			return [], [], []
 		
@@ -111,11 +114,12 @@ class App:
 		self.tracker = ModeTracking()
 		
 		# ------------- Initialize the Transition and Likelihoods based on the clustering result
-		step = 86400000 * 1 # read chunk by chunk of (each chunk is of 'step' milliseconds)
+		timedelta = datetime.timedelta(milliseconds=86400000 * 1) # read chunk by chunk of (each chunk is of 'step' milliseconds)
 		date = d_start
 		while date < d_end:
-			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + datetime.timedelta(milliseconds=step))
-			date = date + datetime.timedelta(milliseconds=step)
+			if date + timedelta >= d_end: timedelta = d_end - date
+			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + timedelta)
+			date += timedelta
 			
 			self.tracker.update_transition( labels )
 			self.tracker.update_likelihoods( axes, labels )
@@ -124,23 +128,34 @@ class App:
 	def tracking(self, d_start=gb.D_START_TRACKING, d_end=gb.D_END_TRACKING, path=""):
 		print "\n --------- tracking ..."
 		
-		silhouette_fsp, silhouette_ssp, counter = 0, 0, 1
+		times_fsp, axes_fsp, labels_fsp = [], [], []
+		times_ssp, axes_ssp, labels_ssp = [], [], []
 		
-		step = 60 * 60*1000  # read chunk by chunk of (each chunk is of 'step' milliseconds)
+		timedelta = datetime.timedelta(milliseconds=60 * 60*1000) # read chunk by chunk (each chunk is of 'timedelta' milliseconds)
 		date = d_start
 		while date < d_end:
-			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + datetime.timedelta(milliseconds=step))
+			if date + timedelta >= d_end: timedelta = d_end - date
+			
+			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + timedelta)
 			self.plot_colored_signals(times, axes, labels, path, figname="_FSP.png")
-			silhouette_fsp += 0.#self.silhouette(axes, labels)
+			times_fsp += times; axes_fsp += axes; labels_fsp += labels
 			
-			times, axes, labels = self.predict_ssp(d_start=date, d_end=date + datetime.timedelta(milliseconds=step), update=True)
+			times, axes, labels = self.predict_ssp(d_start=date, d_end=date + timedelta, update=True)
 			self.plot_colored_signals(times, axes, labels, path, figname="_SSP.png")
-			silhouette_ssp += 0.#self.silhouette(axes, labels)
+			times_ssp += times; axes_ssp += axes; labels_ssp += labels
 			
-			date = date + datetime.timedelta(milliseconds=step)
-			counter += 1
-			
-		return silhouette_fsp/counter, silhouette_ssp/counter
+			date += timedelta
+		
+		# ----------------------------
+		if gb.ARTIFICIAL:
+			times, values, true_labels = self.sigReaders[0].getSignal(start=d_start, end=d_end, dated=gb.DATED, get_modes=True)
+			print "---------------------------------------------------"
+			print "adjusted_rand_score FSP:", adjusted_rand_score(true_labels, labels_fsp)
+			print "adjusted_rand_score SSP:", adjusted_rand_score(true_labels, labels_ssp)
+		
+		# ----------------------------
+		return 0., 0.
+		# return self.silhouette(axes_fsp, labels_fsp), self.silhouette(axes_ssp, labels_ssp)
 		
 	# -----------------------------------------
 	def silhouette(self, axes, labels):

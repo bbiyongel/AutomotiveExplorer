@@ -5,6 +5,8 @@ import matplotlib.pylab as plt
 
 class ArtificialData(object):
 	def __init__(self):
+		random.seed(1234)
+		
 		self.highway_VS = (80, 80)
 		self.highway_ES = (1300,  1300) # Should be very concentrated around 1300
 		self.highway_APP = (0,  0)
@@ -29,12 +31,14 @@ class ArtificialData(object):
 		self.agressive_behaviour = 10
 		
 	# -----------------------------------------------------------------------------
-	def run(self, parts=1):
+	def run(self, parts=1, agressivity_fixed = False):
 		modes_agg = []; modes_reg = []; modes_tem = []
 		VS = []; ES = []; APP = []; BPP = []; ECT = []
 		
 		for _ in range(parts):
-			agressive = 1 if random.uniform(0,1) < 0.5 else 0
+			if not agressivity_fixed: agressive = 1 if random.uniform(0,1) < 0.5 else 0
+			else: agressive = 0
+			
 			period_agg = 60 * random.randint(3*60, 5*60)
 			
 			modes_agg += [ agressive for _ in range(period_agg) ]
@@ -95,7 +99,7 @@ class ArtificialData(object):
 		print len(modes_agg), len(modes_reg), len(modes_tem)
 		print set(modes_agg), set(modes_reg), set(modes_tem)
 		
-		return VS, ES, APP, BPP, ECT
+		return [VS, ES, APP, BPP, ECT], [modes_agg, modes_reg, modes_tem]
 		
 	# -----------------------------------------------------------------------------
 	def randomized_line(self, n, interval):

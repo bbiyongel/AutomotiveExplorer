@@ -2,6 +2,7 @@ import globals as gb
 from App import App
 from Visualize import Visualize
 from SignalReader import SignalReader
+from SignalReaderArtificial import SignalReaderArtificial
 from Clustering import Clustering
 from ArtificialData import ArtificialData
 import os
@@ -26,28 +27,27 @@ def getCombinations( L, nb=20, length=3 ):
 # =================================================================
 if __name__ == "__main__":
 	warnings.simplefilter(action = "ignore", category = FutureWarning)
-	
-	# art = ArtificialData()
-	# art.run(parts=5)
-	# exit(0)
+	random.seed(1234)
 	
 	# -----------------------------
-	dbfiles = [gb.DATA_PATH + gb.VEHICLE + "_" + sig_id + ".db" for sig_id in gb.SIG_IDS]
-	sigReaders = [ SignalReader(dbfile, preprocess=False) for dbfile in dbfiles ]
+	if not gb.ARTIFICIAL:
+		dbfiles = [gb.DATA_PATH + gb.VEHICLE + "_" + sig_id + ".db" for sig_id in gb.SIG_IDS]
+		sigReaders = [ SignalReader(dbfile, preprocess=False) for dbfile in dbfiles ]
+	else:
+		signalsValues, modes = ArtificialData().run(parts=30, agressivity_fixed=True) # VS, ES, APP, BPP, ECT
+		sigReaders = [ SignalReaderArtificial(signame="blabla"+str(i), sigvalues=values, modes=modes[1]) for i,values in enumerate(signalsValues) ]
 	
 	# -----------------------------
 	app = App(sigReaders)
 	DATA = app.build_features_data()
-	
-	k = 4
 	
 	features_combinations = getCombinations( range(len(DATA[0])), nb=20, length=2 )
 	# features_combinations = range(2, len(DATA[0]))
 	
 	combos=[]; qualitiesFSP=[]; qualitiesSSP=[]
 	for id_combin, n_features in enumerate( features_combinations ):
-		clust = Clustering(DATA, scale=True, features=None).dpgmm(k=k) # kmeans, dpgmm
-		# clust = Clustering(DATA, scale=True, features=n_features).gmm(k=k)
+		clust = Clustering(DATA, scale=True, features=None).gmm(k=gb.K) # kmeans, dpgmm
+		# clust = Clustering(DATA, scale=True, features=n_features).gmm(k=gb.K)
 		
 		app.init_clust_tracker(clust)
 		
