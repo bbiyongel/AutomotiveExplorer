@@ -31,7 +31,7 @@ class ModeTracking(object):
 		# -------------
 		if update and self.prev_y is not None:
 			self.update_transition( [self.prev_y, predicted_mode] )
-			self.update_likelihoods( x,  predicted_mode )
+			self.update_likelihoods( [ [v] for v in x ],  [predicted_mode] )
 			
 		self.prev_y = predicted_mode
 		# -------------

@@ -37,8 +37,8 @@ if __name__ == "__main__":
 	app = App(sigReaders)
 	DATA = app.build_features_data()
 	
-	features_combinations = getCombinations( range(len(DATA[0])), nb=20, length=2 )
-	# features_combinations = range(2, len(DATA[0]))
+	# features_combinations = getCombinations( range(len(DATA[0])), nb=20, length=2 )
+	features_combinations = range(2, len(DATA[0]))
 	
 	combos=[]; qualitiesFSP=[]; qualitiesSSP=[]
 	for id_combin, n_features in enumerate( features_combinations ):

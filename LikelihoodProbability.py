@@ -7,7 +7,62 @@ from collections import defaultdict
 # ===============================================================================================
 class LikelihoodProbability(object):
 	def __init__(self, type="empirical"):
-		MAX_DIM = 100
+		self.lp = LikelihoodProbabilityDependence() if type == "multivariate" else LikelihoodProbabilityIndependence(type=type)
+		
+	def fit(self, axes, labels):
+		return self.lp.fit(axes, labels)
+		
+	def proba(self, x, y):
+		return self.lp.proba(x, y)
+
+# ===============================================================================================
+class LikelihoodProbabilityDependence(object): # Not assuming independence between signals
+	def __init__(self):
+		self.dict = defaultdict(CovarianceMatrix)
+	
+	def fit(self, axes, labels):
+		data = zip(*axes)
+		
+		for (x, y) in zip(data, labels):
+			x = [float(v) for v in x]
+			self.dict[y].update( np.array([ x ]) )
+			
+		return self
+		
+	def proba(self, x, y): # x is a data point, y is a label
+		cov_mtx, avg, tlen = self.fix( self.dict[y] )
+		mean = avg
+		cov = cov_mtx
+		
+		p = multivariate_normal.pdf(x, mean=mean, cov=cov)
+		return p
+		
+	def fix(self, cova, center=True):
+		numx = mdp.numx
+		tlen = cova._tlen * 1
+		avg = np.array(cova._avg)
+		cov_mtx = np.array(cova._cov_mtx)
+
+		if cova.bias:
+			cov_mtx /= tlen
+		else:
+			cov_mtx /= tlen - 1
+
+		if center:
+			avg_mtx = numx.outer(avg, avg)
+			if cova.bias:
+				avg_mtx /= tlen*(tlen)
+			else:
+				avg_mtx /= tlen*(tlen - 1)
+			cov_mtx -= avg_mtx
+			
+		avg /= tlen
+
+		return cov_mtx, avg, tlen
+		
+# ===============================================================================================
+class LikelihoodProbabilityIndependence(object): # Assuming independence between signals
+	def __init__(self, type="empirical", MAX_DIM = 1000):
 		self.likelihoods = [ UnivariateLikelihoodProbability(type=type) for _ in range(MAX_DIM) ]
 	
 	def fit(self, axes, labels):
@@ -34,13 +89,10 @@ class UnivariateLikelihoodProbability(object):
 		
 	# -------------------------------------------------------------------------
 	#  Compute the likelihood model according to data X and labels Y
-	def fit_empirical(self, X, Y):
-		if type(X) not in [list,tuple] and type(Y) not in [list,tuple]:
-			X, Y = [X], [Y]
-		
-		for (x, y) in zip(X, Y):
+	def fit_empirical(self, AX, Y):
+		for (v, y) in zip(AX, Y):
 			bar = self.dict.setdefault(y, {})
-			bar[x] = bar.setdefault(x, 0) + 1
+			bar[v] = bar.setdefault(v, 0) + 1
 			
 		return self
 	
@@ -52,12 +104,9 @@ class UnivariateLikelihoodProbability(object):
 	
 	# -------------------------------------------------------------------------
 	# Compute the likelihood model according to data X and labels Y
-	def fit_normal(self, X, Y):
-		if type(X) not in [list,tuple] and type(Y) not in [list,tuple]:
-			X, Y = [X], [Y]
-		
-		for (x, y) in zip(X, Y):
-			dp = [float(x)] # because x is one value, but we need an array of data points in the mdp update method
+	def fit_normal(self, AX, Y):
+		for (v, y) in zip(AX, Y):
+			dp = [float(v)] # because v is one value, but we need an array of data points in the mdp update method
 			self.dict[y].update( np.array([dp]) )
 		
 		return self
