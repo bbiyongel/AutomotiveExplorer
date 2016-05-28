@@ -111,7 +111,7 @@ class App:
 		print "\n --------- init_clust_tracker ..."
 		
 		self.clust = clust
-		self.tracker = ModeTracking()
+		self.tracker = ModeTracking(type="normal")
 		
 		# ------------- Initialize the Transition and Likelihoods based on the clustering result
 		timedelta = datetime.timedelta(milliseconds=86400000 * 1) # read chunk by chunk of (each chunk is of 'step' milliseconds)

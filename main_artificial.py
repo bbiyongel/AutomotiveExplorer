@@ -32,7 +32,7 @@ if __name__ == "__main__":
 	Ks = [3]
 	Ds = [10]
 	Ns = [1.]
-	Ps = [0.1]
+	Ps = [0.5]
 	
 	# combos = list(itertools.product(Ks, Ds, Ns)); combo_name = ("Ks", "Ds", "Ns"); params = Ps
 	combos = list(itertools.product(Ks, Ps, Ns)); combo_name = ("Ks", "Ps", "Ns"); params = Ds

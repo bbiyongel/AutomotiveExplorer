@@ -4,9 +4,9 @@ from TransitionProbability import TransitionProbability
 from LikelihoodProbability import LikelihoodProbability
 
 class ModeTracking(object):
-	def __init__(self, type="empirical"):
+	def __init__(self, nb_sigs = len(gb.SIG_IDS)):
 		self.transition = TransitionProbability()
-		self.likelihood = LikelihoodProbability(type=type)
+		self.likelihoods = [ LikelihoodProbability() for _ in range(nb_sigs) ]
 		
 		self.uniq_labels = []
 		self.prev_posterior = []
@@ -18,8 +18,7 @@ class ModeTracking(object):
 		posterior = []
 		
 		for mode in self.uniq_labels:
-			likeli_prod = self.likelihood.proba( x, mode )
-			
+			likeli_prod = np.product([ lk.proba( x[ilk], mode ) for ilk, lk in enumerate(self.likelihoods) ])
 			sum_previous = np.sum([ self.transition.proba(mode_prev, mode) * self.prev_posterior[id] for id, mode_prev in enumerate(self.uniq_labels) ])
 			posterior.append( likeli_prod * sum_previous )
 			
@@ -47,7 +46,9 @@ class ModeTracking(object):
 	# ------------------------------------------------------
 	''' '''
 	def update_likelihoods(self, axes, labels):
-		self.likelihood.fit( axes, labels )
+		for iax in range(len(axes)):
+			self.likelihoods[iax].fit( axes[iax], labels )
+		
 		self.update_modes_info(labels)
 	
 	# ------------------------------------------------------
