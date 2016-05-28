@@ -30,12 +30,8 @@ if __name__ == "__main__":
 	random.seed(1234)
 	
 	# -----------------------------
-	if not gb.ARTIFICIAL:
-		dbfiles = [gb.DATA_PATH + gb.VEHICLE + "_" + sig_id + ".db" for sig_id in gb.SIG_IDS]
-		sigReaders = [ SignalReader(dbfile, preprocess=False) for dbfile in dbfiles ]
-	else:
-		signalsValues, modes = ArtificialData().run(parts=30, agressivity_fixed=True) # VS, ES, APP, BPP, ECT
-		sigReaders = [ SignalReaderArtificial(signame="blabla"+str(i), sigvalues=values, modes=modes[1]) for i,values in enumerate(signalsValues) ]
+	dbfiles = [gb.DATA_PATH + gb.VEHICLE + "_" + sig_id + ".db" for sig_id in gb.SIG_IDS]
+	sigReaders = [ SignalReader(dbfile, preprocess=False) for dbfile in dbfiles ]
 	
 	# -----------------------------
 	app = App(sigReaders)
@@ -63,7 +59,7 @@ if __name__ == "__main__":
 		qualitiesFSP.append(qualityFSP)
 		qualitiesSSP.append(qualitySSP)
 		break
-	
+		
 	print "qualitiesFSP/qualitiesSSP", zip(qualitiesFSP, qualitiesSSP)
 	Visualize().plot( [combos, qualitiesFSP], axs_labels=['Combination (over features)', 'Quality'], marker="-", label="id_combin="+str(id_combin), fig="plots/quality-combos.png" )
 	Visualize().plot( [combos, qualitiesSSP], axs_labels=['Combination (over features)', 'qualitySS'], marker="-", label="id_combin="+str(id_combin), fig="plots/qualitySS-combos.png" )

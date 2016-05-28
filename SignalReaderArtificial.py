@@ -1,5 +1,4 @@
 import datetime
-# import globals as gb
 
 class SignalReaderArtificial(object):
 	''' Open the database dbfile containing the signal. preprocess_duration defaults to 6 months '''

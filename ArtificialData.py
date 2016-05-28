@@ -4,39 +4,95 @@ import random
 import matplotlib.pylab as plt
 
 class ArtificialData(object):
-	def __init__(self):
-		random.seed(1234)
+	def __init__(self, noise=1., ptrn=0.):
+		self.noise = noise
+		self.epsilon = ptrn # Patterns proximity (difficulty)
 		
+		# -------------------------
 		self.highway_VS = (80, 80)
-		self.highway_ES = (1300,  1300) # Should be very concentrated around 1300
-		self.highway_APP = (0,  0)
+		self.highway_ES = (1300, 1300)
+		self.highway_APP = (50, 100)
 		self.highway_BPP = (0,  0)
 		
 		self.countrySide_VS = (60,  80)
-		self.countrySide_ES = (1000,  1100)
-		self.countrySide_APP = (40,  60)
-		self.countrySide_BPP = (0,  15)
+		self.countrySide_ES = (1000, 1100)
+		self.countrySide_APP = (40, 60)
+		self.countrySide_BPP = (0,  20)
 		
 		self.city_VS = (0,  60)
-		self.city_ES = (500,  1000)  # Should be from time,  time very concentrated around 600 (stops)
-		self.city_APP = (0,  40)
-		self.city_BPP = (15,  30)
+		self.city_ES = (500, 1000)
+		self.city_APP = (0,  50)
+		self.city_BPP = (10,  30)
 		
-		self.coldEngine_ECT = (10,  70)
+		self.coldEngine_ECT = (10, 70)
 		self.hotEngine_ECT = (70,  85)
 		
-		self.noise = 1.
+		self.normal_behaviour = 70
+		self.agressive_behaviour = 6
+		# -------------------------
 		
-		self.normal_behaviour = 100
-		self.agressive_behaviour = 10
+		mean_VS = [ np.mean([ self.highway_VS[i], self.countrySide_VS[i], self.city_VS[i] ]) for i in [0,1] ]
+		mean_ES = [ np.mean([ self.highway_ES[i], self.countrySide_ES[i], self.city_ES[i] ]) for i in [0,1] ]
+		mean_APP = [ np.mean([ self.highway_APP[i], self.countrySide_APP[i], self.city_APP[i] ]) for i in [0,1] ]
+		mean_BPP = [ np.mean([ self.highway_BPP[i], self.countrySide_BPP[i], self.city_BPP[i] ]) for i in [0,1] ]
+		mean_ECT = [ np.mean([ self.coldEngine_ECT[i], self.hotEngine_ECT[i] ]) for i in [0,1] ]
+		mean_Agg = np.mean([ self.normal_behaviour, self.agressive_behaviour ])
+		
+		self.highway_VS = tuple( np.array(self.highway_VS) + self.epsilon * ( np.array(mean_VS) - np.array(self.highway_VS) ) )
+		self.highway_ES = tuple( np.array(self.highway_ES) + self.epsilon * ( np.array(mean_ES) - np.array(self.highway_ES) ) )
+		self.highway_APP = tuple( np.array(self.highway_APP) + self.epsilon * ( np.array(mean_APP) - np.array(self.highway_APP) ) )
+		self.highway_BPP = tuple( np.array(self.highway_BPP) + self.epsilon * ( np.array(mean_BPP) - np.array(self.highway_BPP) ) )
+		
+		self.countrySide_VS = tuple( np.array(self.countrySide_VS) + self.epsilon * ( np.array(mean_VS) - np.array(self.countrySide_VS) ) )
+		self.countrySide_ES = tuple( np.array(self.countrySide_ES) + self.epsilon * ( np.array(mean_ES) - np.array(self.countrySide_ES) ) )
+		self.countrySide_APP = tuple( np.array(self.countrySide_APP) + self.epsilon * ( np.array(mean_APP) - np.array(self.countrySide_APP) ) )
+		self.countrySide_BPP = tuple( np.array(self.countrySide_BPP) + self.epsilon * ( np.array(mean_BPP) - np.array(self.countrySide_BPP) ) )
+		
+		self.city_VS = tuple( np.array(self.city_VS) + self.epsilon * ( np.array(mean_VS) - np.array(self.city_VS) ) )
+		self.city_ES = tuple( np.array(self.city_ES) + self.epsilon * ( np.array(mean_ES) - np.array(self.city_ES) ) )
+		self.city_APP = tuple( np.array(self.city_APP) + self.epsilon * ( np.array(mean_APP) - np.array(self.city_APP) ) )
+		self.city_BPP = tuple( np.array(self.city_BPP) + self.epsilon * ( np.array(mean_BPP) - np.array(self.city_BPP) ) )
+		
+		self.coldEngine_ECT = tuple( np.array(self.coldEngine_ECT) + self.epsilon * ( np.array(mean_ECT) - np.array(self.coldEngine_ECT) ) )
+		self.hotEngine_ECT = tuple( np.array(self.hotEngine_ECT) + self.epsilon * ( np.array(mean_ECT) - np.array(self.hotEngine_ECT) ) )
+		
+		self.normal_behaviour = self.normal_behaviour + self.epsilon * (mean_Agg - self.normal_behaviour)
+		self.agressive_behaviour = self.agressive_behaviour + self.epsilon * (mean_Agg - self.agressive_behaviour)
+		
+		self.highway_VS = [int(v) for v in self.highway_VS]
+		self.highway_ES = [int(v) for v in self.highway_ES]
+		self.highway_APP = [int(v) for v in self.highway_APP]
+		self.highway_BPP = [int(v) for v in self.highway_BPP]
+		
+		self.countrySide_VS = [int(v) for v in self.countrySide_VS]
+		self.countrySide_ES = [int(v) for v in self.countrySide_ES]
+		self.countrySide_APP = [int(v) for v in self.countrySide_APP]
+		self.countrySide_BPP = [int(v) for v in self.countrySide_BPP]
+		
+		self.city_VS = [int(v) for v in self.city_VS]
+		self.city_ES = [int(v) for v in self.city_ES]
+		self.city_APP = [int(v) for v in self.city_APP]
+		self.city_BPP = [int(v) for v in self.city_BPP]
+		
+		self.coldEngine_ECT = [int(v) for v in self.coldEngine_ECT]
+		self.hotEngine_ECT = [int(v) for v in self.hotEngine_ECT]
+		
+		self.normal_behaviour = int(self.normal_behaviour)
+		self.agressive_behaviour = int(self.agressive_behaviour)
+		
+		print self.highway_VS, self.highway_ES, self.highway_APP, self.highway_BPP
+		print self.countrySide_VS, self.countrySide_ES, self.countrySide_APP, self.countrySide_BPP
+		print self.city_VS, self.city_ES, self.city_APP, self.city_BPP
+		print self.coldEngine_ECT, self.hotEngine_ECT
+		print self.normal_behaviour, self.agressive_behaviour
 		
 	# -----------------------------------------------------------------------------
-	def run(self, parts=1, agressivity_fixed = False):
+	def run(self, parts=1, enable_agg = True):
 		modes_agg = []; modes_reg = []; modes_tem = []
 		VS = []; ES = []; APP = []; BPP = []; ECT = []
 		
 		for _ in range(parts):
-			if not agressivity_fixed: agressive = 1 if random.uniform(0,1) < 0.5 else 0
+			if enable_agg: agressive = 1 if random.uniform(0,1) < 0.5 else 0
 			else: agressive = 0
 			
 			period_agg = 60 * random.randint(3*60, 5*60)
@@ -99,7 +155,12 @@ class ArtificialData(object):
 		print len(modes_agg), len(modes_reg), len(modes_tem)
 		print set(modes_agg), set(modes_reg), set(modes_tem)
 		
-		return [VS, ES, APP, BPP, ECT], [modes_agg, modes_reg, modes_tem]
+		if enable_agg:
+			combined_modes = zip(modes_agg, modes_reg)
+			combined_modes_set = list(set(combined_modes))
+			return [VS, ES, APP, BPP], [ combined_modes_set.index((a,b)) for (a,b) in combined_modes ]
+		else:
+			return [VS, ES, APP, BPP], modes_reg
 		
 	# -----------------------------------------------------------------------------
 	def randomized_line(self, n, interval):
@@ -196,8 +257,8 @@ class ArtificialData(object):
 		while len(BPP) < period:
 			BPP += self.randomized_line(n=maxi-mini, interval=(mini, maxi))
 			
-			if agressive==0: BPP += self.randomized_line(n=random.randint(self.normal_behaviour-5,self.normal_behaviour+5), interval=(BPP[-1], BPP[-1]))
-			else: BPP += self.randomized_line(n=random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2), interval=(BPP[-1], BPP[-1]))
+			# if agressive==0: BPP += self.randomized_line(n=random.randint(self.normal_behaviour-5,self.normal_behaviour+5), interval=(BPP[-1], BPP[-1]))
+			# else: BPP += self.randomized_line(n=random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2), interval=(BPP[-1], BPP[-1]))
 			
 			mini = random.randint( self.countrySide_BPP[0], self.countrySide_BPP[1]-1 )
 			maxi = random.randint( mini+1, self.countrySide_BPP[1] )
@@ -231,7 +292,7 @@ class ArtificialData(object):
 		
 		for t in range(period):
 			es = random.randint( self.highway_ES[0], self.highway_ES[1] )
-			if agressive==1: es += np.random.normal(0,5)
+			if agressive==1: es += np.random.normal(0,1)
 			ES.append(es)
 		
 		for t in range(period):

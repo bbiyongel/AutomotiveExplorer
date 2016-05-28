@@ -149,10 +149,12 @@ class App:
 		# ----------------------------
 		if gb.ARTIFICIAL:
 			times, values, true_labels = self.sigReaders[0].getSignal(start=d_start, end=d_end, dated=gb.DATED, get_modes=True)
+			score_fps = adjusted_rand_score(true_labels, labels_fsp)
+			score_sps = adjusted_rand_score(true_labels, labels_ssp)
 			print "---------------------------------------------------"
-			print "adjusted_rand_score FSP:", adjusted_rand_score(true_labels, labels_fsp)
-			print "adjusted_rand_score SSP:", adjusted_rand_score(true_labels, labels_ssp)
-		
+			print "adjusted_rand_score FSP:", score_fps
+			print "adjusted_rand_score SSP:", score_sps
+			return score_fps, score_sps
 		# ----------------------------
 		return 0., 0.
 		# return self.silhouette(axes_fsp, labels_fsp), self.silhouette(axes_ssp, labels_ssp)
