@@ -17,6 +17,10 @@ import pylab as plt
 class App:
 	def __init__(self, sigReaders):
 		self.sigReaders = sigReaders
+		
+		sigsTimeValues = [ sr.getSignal() for sr in self.sigReaders ]
+		sigsValues = [ values for times, values in sigsTimeValues ]
+		self.sigsRanges = [ (min(values), max(values), min(np.gradient(values)), max(np.gradient(values))) for values in sigsValues ]
 	
 	# -----------------------------------------
 	def build_features_data(self, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
@@ -30,17 +34,17 @@ class App:
 			if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
 				continue
 			
-			x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ]) #Warning: Future calls to extractMany should take the signals in same order
+			x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ], self.sigsRanges) #Warning: Future calls to extractMany should take the signals in same order
 			DATA.append(x)
 		
 		return DATA
 		
 	# -----------------------------------------
 	''' Predict from the clustering done in the feature space '''
-	def predict_fsp(self, d_start, d_end):
+	def predict_fsp(self, d_start, d_end, D=gb.DURATION):
 		dico = defaultdict(list)
 		
-		timedelta = datetime.timedelta(milliseconds=gb.DURATION)
+		timedelta = datetime.timedelta(milliseconds=D)
 		date = d_start
 		while date < d_end:
 			sys.stdout.write("\r%s" % "predict_fsp --- " + str(date)); sys.stdout.flush()
@@ -53,8 +57,9 @@ class App:
 			if any([ len(values)<gb.MIN_SUBSEQUENCE_LEN for times, values in sigsTimeValues ]):
 				continue
 			
-			x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ])
+			x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ], self.sigsRanges)
 			y = self.clust.predict(x) # get the cluster id (i.e., cluster label)
+			
 			for signame, (times, values) in zip(sigsNames, sigsTimeValues):
 				dico[signame+"TIMES"] += times
 				dico[signame+"VALUES"] += values
@@ -137,11 +142,11 @@ class App:
 			if date + timedelta >= d_end: timedelta = d_end - date
 			
 			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + timedelta)
-			self.plot_colored_signals(times, axes, labels, path, figname="_FSP.png")
+			# self.plot_colored_signals(times, axes, labels, path, figname="_FSP.png")
 			times_fsp += times; axes_fsp += axes; labels_fsp += labels
 			
 			times, axes, labels = self.predict_ssp(d_start=date, d_end=date + timedelta, update=True)
-			self.plot_colored_signals(times, axes, labels, path, figname="_SSP.png")
+			# self.plot_colored_signals(times, axes, labels, path, figname="_SSP.png")
 			times_ssp += times; axes_ssp += axes; labels_ssp += labels
 			
 			date += timedelta

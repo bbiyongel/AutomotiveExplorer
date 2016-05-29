@@ -9,6 +9,7 @@ import os
 import math
 import random
 import datetime
+import time
 import warnings
 import numpy as np
 
@@ -61,8 +62,8 @@ if __name__ == "__main__":
 		break
 		
 	print "qualitiesFSP/qualitiesSSP", zip(qualitiesFSP, qualitiesSSP)
-	Visualize().plot( [combos, qualitiesFSP], axs_labels=['Combination (over features)', 'Quality'], marker="-", label="id_combin="+str(id_combin), fig="plots/quality-combos.png" )
-	Visualize().plot( [combos, qualitiesSSP], axs_labels=['Combination (over features)', 'qualitySS'], marker="-", label="id_combin="+str(id_combin), fig="plots/qualitySS-combos.png" )
+	Visualize().plot( [combos, qualitiesFSP], axs_labels=['Combination (over features)', 'Quality'], marker="-", label="id_combin="+str(id_combin), fig="plots/quality-combos-"+str(time.time())+".png" )
+	Visualize().plot( [combos, qualitiesSSP], axs_labels=['Combination (over features)', 'qualitySS'], marker="-", label="id_combin="+str(id_combin), fig="plots/qualitySS-combos-"+str(time.time())+".png" )
 	
 	# -----------------------------
 	map(lambda sr: sr.closeDB(), sigReaders)

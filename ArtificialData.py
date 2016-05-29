@@ -27,7 +27,7 @@ class ArtificialData(object):
 		self.coldEngine_ECT = (10, 70)
 		self.hotEngine_ECT = (70,  85)
 		
-		self.normal_behaviour = 70
+		self.normal_behaviour = 100
 		self.agressive_behaviour = 6
 		# -------------------------
 		
@@ -87,13 +87,13 @@ class ArtificialData(object):
 		print self.normal_behaviour, self.agressive_behaviour
 		
 	# -----------------------------------------------------------------------------
-	def run(self, parts=1, enable_agg = True):
+	def run(self, parts=1, agg = None):
 		modes_agg = []; modes_reg = []; modes_tem = []
 		VS = []; ES = []; APP = []; BPP = []; ECT = []
 		
 		for _ in range(parts):
-			if enable_agg: agressive = 1 if random.uniform(0,1) < 0.5 else 0
-			else: agressive = 0
+			if agg is None: agressive = 1 if random.uniform(0,1) < 0.5 else 0
+			else: agressive = agg
 			
 			period_agg = 60 * random.randint(3*60, 5*60)
 			
@@ -155,7 +155,7 @@ class ArtificialData(object):
 		print len(modes_agg), len(modes_reg), len(modes_tem)
 		print set(modes_agg), set(modes_reg), set(modes_tem)
 		
-		if enable_agg:
+		if agg is None:
 			combined_modes = zip(modes_agg, modes_reg)
 			combined_modes_set = list(set(combined_modes))
 			return [VS, ES, APP, BPP], [ combined_modes_set.index((a,b)) for (a,b) in combined_modes ]
@@ -174,15 +174,34 @@ class ArtificialData(object):
 		return L
 	
 	# -----------------------------------------------------------------------------
+	def get_random_ints(self, aggressive=False):
+		if aggressive == False:
+			rnd1 = random.randint(self.normal_behaviour-5,self.normal_behaviour+20)
+			rnd2 = random.randint(self.normal_behaviour-20,self.normal_behaviour+5)
+			rnd3 = random.randint(self.normal_behaviour-5,self.normal_behaviour+20)
+		else:
+			rnd1 = random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2)
+			rnd2 = random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2)
+			rnd3 = random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2)
+			
+		return rnd1, rnd2, rnd3
+		
+	# -----------------------------------------------------------------------------
 	def city(self, period=15*60, agressive=0):
 		VS = []; ES = []; APP = []; BPP = []
 		
 		mini, maxi = self.city_VS
 		while len(VS) < period:
-			VS += self.randomized_line(n=maxi-mini, interval=(mini, maxi))
-			
-			if agressive==0: VS += self.randomized_line(n=random.randint(self.normal_behaviour-5,self.normal_behaviour+5), interval=(VS[-1], VS[-1]))
-			else: VS += self.randomized_line(n=random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2), interval=(VS[-1], VS[-1]))
+			if agressive==0:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=False)
+				VS += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				VS += self.randomized_line(n=rnd2, interval=(VS[-1], VS[-1]))
+				VS += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.city_VS[0], maxi-1)))
+			else:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=True)
+				VS += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				VS += self.randomized_line(n=rnd2, interval=(VS[-1], VS[-1]))
+				VS += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.city_VS[0], maxi-1)))
 			
 			mini = random.randint( self.city_VS[0], self.city_VS[1]-1 )
 			maxi = random.randint( mini+1, self.city_VS[1] )
@@ -191,20 +210,32 @@ class ArtificialData(object):
 		
 		mini, maxi = self.city_APP
 		while len(APP) < period:
-			APP += self.randomized_line(n=maxi-mini, interval=(mini, maxi))
-			
-			if agressive==0: APP += self.randomized_line(n=random.randint(self.normal_behaviour-5,self.normal_behaviour+5), interval=(APP[-1], APP[-1]))
-			else: APP += self.randomized_line(n=random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2), interval=(APP[-1], APP[-1]))
+			if agressive==0:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=False)
+				APP += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				APP += self.randomized_line(n=rnd2, interval=(APP[-1], APP[-1]))
+				APP += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.city_APP[0], maxi-1)))
+			else:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=True)
+				APP += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				APP += self.randomized_line(n=rnd2, interval=(APP[-1], APP[-1]))
+				APP += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.city_APP[0], maxi-1)))
 			
 			mini = random.randint( self.city_APP[0], self.city_APP[1]-1 )
 			maxi = random.randint( mini+1, self.city_APP[1] )
 		
 		mini, maxi = self.city_BPP
 		while len(BPP) < period:
-			BPP += self.randomized_line(n=maxi-mini, interval=(mini, maxi))
-			
-			if agressive==0: BPP += self.randomized_line(n=random.randint(self.normal_behaviour-5,self.normal_behaviour+5), interval=(BPP[-1], BPP[-1]))
-			else: BPP += self.randomized_line(n=random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2), interval=(BPP[-1], BPP[-1]))
+			if agressive==0:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=False)
+				BPP += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				BPP += self.randomized_line(n=rnd2, interval=(BPP[-1], BPP[-1]))
+				BPP += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.city_BPP[0], maxi-1)))
+			else:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=True)
+				BPP += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				BPP += self.randomized_line(n=rnd2, interval=(BPP[-1], BPP[-1]))
+				BPP += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.city_BPP[0], maxi-1)))
 			
 			mini = random.randint( self.city_BPP[0], self.city_BPP[1]-1 )
 			maxi = random.randint( mini+1, self.city_BPP[1] )
@@ -233,10 +264,16 @@ class ArtificialData(object):
 		
 		mini, maxi = self.countrySide_VS
 		while len(VS) < period:
-			VS += self.randomized_line(n=maxi-mini, interval=(mini, maxi))
-			
-			if agressive==0: VS += self.randomized_line(n=random.randint(self.normal_behaviour-5,self.normal_behaviour+5), interval=(VS[-1], VS[-1]))
-			else: VS += self.randomized_line(n=random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2), interval=(VS[-1], VS[-1]))
+			if agressive==0:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=False)
+				VS += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				VS += self.randomized_line(n=rnd2, interval=(VS[-1], VS[-1]))
+				VS += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.countrySide_VS[0], maxi-1)))
+			else:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=True)
+				VS += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				VS += self.randomized_line(n=rnd2, interval=(VS[-1], VS[-1]))
+				VS += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.countrySide_VS[0], maxi-1)))
 			
 			mini = random.randint( self.countrySide_VS[0], self.countrySide_VS[1]-1 )
 			maxi = random.randint( mini+1, self.countrySide_VS[1] )
@@ -245,20 +282,32 @@ class ArtificialData(object):
 		
 		mini, maxi = self.countrySide_APP
 		while len(APP) < period:
-			APP += self.randomized_line(n=maxi-mini, interval=(mini, maxi))
-			
-			if agressive==0: APP += self.randomized_line(n=random.randint(self.normal_behaviour-5,self.normal_behaviour+5), interval=(APP[-1], APP[-1]))
-			else: APP += self.randomized_line(n=random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2), interval=(APP[-1], APP[-1]))
+			if agressive==0:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=False)
+				APP += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				APP += self.randomized_line(n=rnd2, interval=(APP[-1], APP[-1]))
+				APP += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.countrySide_APP[0], maxi-1)))
+			else:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=True)
+				APP += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				APP += self.randomized_line(n=rnd2, interval=(APP[-1], APP[-1]))
+				APP += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.countrySide_APP[0], maxi-1)))
 			
 			mini = random.randint( self.countrySide_APP[0], self.countrySide_APP[1]-1 )
 			maxi = random.randint( mini+1, self.countrySide_APP[1] )
 		
 		mini, maxi = self.countrySide_BPP
 		while len(BPP) < period:
-			BPP += self.randomized_line(n=maxi-mini, interval=(mini, maxi))
-			
-			# if agressive==0: BPP += self.randomized_line(n=random.randint(self.normal_behaviour-5,self.normal_behaviour+5), interval=(BPP[-1], BPP[-1]))
-			# else: BPP += self.randomized_line(n=random.randint(self.agressive_behaviour-2,self.agressive_behaviour+2), interval=(BPP[-1], BPP[-1]))
+			if agressive==0:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=False)
+				BPP += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				BPP += self.randomized_line(n=rnd2, interval=(BPP[-1], BPP[-1]))
+				BPP += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.countrySide_BPP[0], maxi-1)))
+			else:
+				rnd1, rnd2, rnd3 = self.get_random_ints(aggressive=True)
+				BPP += self.randomized_line(n=rnd1, interval=(mini, maxi))
+				BPP += self.randomized_line(n=rnd2, interval=(BPP[-1], BPP[-1]))
+				BPP += self.randomized_line(n=rnd3, interval=(maxi, random.randint(self.countrySide_BPP[0], maxi-1)))
 			
 			mini = random.randint( self.countrySide_BPP[0], self.countrySide_BPP[1]-1 )
 			maxi = random.randint( mini+1, self.countrySide_BPP[1] )
@@ -287,22 +336,30 @@ class ArtificialData(object):
 		
 		for t in range(period):
 			vs = random.randint( self.highway_VS[0], self.highway_VS[1] )
-			if agressive==1: vs += np.random.normal(0,1)
+			if agressive==1:
+				vs = random.randint( self.highway_VS[0]-1, self.highway_VS[1]+3 )
+				vs += np.random.normal(0,1)
 			VS.append(vs)
 		
 		for t in range(period):
 			es = random.randint( self.highway_ES[0], self.highway_ES[1] )
-			if agressive==1: es += np.random.normal(0,1)
+			if agressive==1:
+				es = random.randint( self.highway_ES[0]-1, self.highway_ES[1]+3 )
+				es += np.random.normal(0,1)
 			ES.append(es)
 		
 		for t in range(period):
 			app = random.randint( self.highway_APP[0], self.highway_APP[1] )
-			if agressive==1: app += np.random.normal(0,1)
+			if agressive==1:
+				app = random.randint( self.highway_APP[0]-1, self.highway_APP[1]+3 )
+				app += np.random.normal(0,1)
 			APP.append(app)
 		
 		for t in range(period):
 			bpp = random.randint( self.highway_BPP[0], self.highway_BPP[1] )
-			if agressive==1: bpp += np.random.normal(0,1)
+			if agressive==1:
+				bpp = random.randint( self.highway_BPP[0]-1, self.highway_BPP[1]+3 )
+				bpp += np.random.normal(0,1)
 			BPP.append(bpp)
 		
 		if self.noise > 0:

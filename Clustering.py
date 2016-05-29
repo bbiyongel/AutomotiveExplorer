@@ -11,7 +11,7 @@ from Visualize import Visualize
 from scipy.spatial import distance
 import matplotlib.pyplot as plt
 from random import shuffle
-from sklearn.metrics.pairwise import cosine_similarity
+from scipy.spatial import distance
 
 class Clustering:
 	def __init__(self, X, scale=False, features=None):
@@ -19,6 +19,7 @@ class Clustering:
 		self.X = X
 		self.k = None
 		
+		self.centers = None
 		self.h = None
 		self.Y = None
 		
@@ -58,6 +59,7 @@ class Clustering:
 		self.h = KMeans(n_clusters = k, init = 'k-means++', n_init = 10, max_iter = 1000, tol = 0.00001, random_state = self.random_seed).fit( self.X )
 		self.Y = self.h.labels_
 		self.k = k
+		self.centers = self.getCenters()
 		
 		return self
 		
@@ -66,6 +68,7 @@ class Clustering:
 		self.h = GMM(n_components=k, random_state = self.random_seed).fit( self.X )
 		self.Y = self.h.predict( self.X )
 		self.k = k
+		self.centers = self.getCenters()
 		
 		#TODO
 		# posterior = self.h.predict_proba( self.X[:5] )
@@ -80,6 +83,7 @@ class Clustering:
 		self.h = DPGMM(n_components=k, alpha=alpha, random_state = self.random_seed).fit( self.X )
 		self.Y = self.h.predict( self.X )
 		self.k = k # this is the max number of components in dpgmm
+		self.centers = self.getCenters()
 		
 		#TODO
 		# posterior = self.h.predict_proba( self.X[:5] )
@@ -107,8 +111,8 @@ class Clustering:
 			unique_labels = np.unique(self.Y)
 			clusters = { ul:[] for ul in unique_labels }
 			
-			for i in range( len(X) ):
-				clusters[ self.Y[i] ].append( X[i] )
+			for i in range( len(self.X) ):
+				clusters[ self.Y[i] ].append( self.X[i] )
 			
 			centers = []
 			for label in clusters:
@@ -150,9 +154,6 @@ class Clustering:
 		
 		return silhouette_score(X, Y, metric='euclidean')
 		
-	#---------------------------------------
-	# def normalized_distance(self, x1, x2):
-		# return math.acos( float(cosine_similarity(x1, x2)) ) / math.pi
 	#---------------------------------------
 	def plot(self, fig=None):
 		if not self.done(): return

@@ -7,18 +7,11 @@ class SignalFeatures(object):
 	def __init__(self):
 		# The name of features to be extracted on the derivative of the signal, must end with '_deriv'
 		
-		# self.fmap = {
-		# "mean":np.mean, "median":np.median, "rms":self.rms, "std":np.std, "maximum":max, "minimum":min, "skewness":scipy.stats.skew, "kurtosis":scipy.stats.kurtosis, "dominantFreq":self.dominantFrequency, 
-		# "mean_deriv":np.mean, "median_deriv":np.median, "rms_deriv":self.rms, "std_deriv":np.std, "maximum_deriv":max, "minimum_deriv":min, "skewness_deriv":scipy.stats.skew, "kurtosis_deriv":scipy.stats.kurtosis, "dominantFreq_deriv":self.dominantFrequency, 
-		# "decrease_ratio_deriv":self.decrease_ratio, "increase_ratio_deriv":self.increase_ratio#, "histo":self.histogram, "histo_deriv":self.histogram
-		# }
-		
 		self.fmap = {
 		"mean":np.mean, "median":np.median, "rms":self.rms, "std":np.std, "maximum":max, "minimum":min, "skewness":scipy.stats.skew, "kurtosis":scipy.stats.kurtosis, "dominantFreq":self.dominantFrequency, 
 		"mean_deriv":np.mean, "median_deriv":np.median, "rms_deriv":self.rms, "std_deriv":np.std, "maximum_deriv":max, "minimum_deriv":min, "skewness_deriv":scipy.stats.skew, "kurtosis_deriv":scipy.stats.kurtosis, "dominantFreq_deriv":self.dominantFrequency, 
 		"decrease_ratio_deriv":self.decrease_ratio, "increase_ratio_deriv":self.increase_ratio#, "histo":self.histogram, "histo_deriv":self.histogram
 		}
-		
 		
 		self.feature_names = self.fmap.keys()
 		
@@ -42,21 +35,9 @@ class SignalFeatures(object):
 		return len([v for v in L if v > 0]) * 1. / len(L)
 		
 	# -------------------------------------------------------------
-	# FIXME: This is a draft function which should be improved
-	def histogram(self, L):
-		histo, _ = np.histogram( L, bins=10 ); histo = histo.tolist()
-		return histo
-		
-	def histogram0(self, L): return self.histogram(L)[0]
-	def histogram1(self, L): return self.histogram(L)[1]
-	def histogram2(self, L): return self.histogram(L)[2]
-	def histogram3(self, L): return self.histogram(L)[3]
-	def histogram4(self, L): return self.histogram(L)[4]
-	def histogram5(self, L): return self.histogram(L)[5]
-	def histogram6(self, L): return self.histogram(L)[6]
-	def histogram7(self, L): return self.histogram(L)[7]
-	def histogram8(self, L): return self.histogram(L)[8]
-	def histogram9(self, L): return self.histogram(L)[9]
+	def histogram(self, L, L_range=None):
+		histo, _ = np.histogram( L, bins=10, range=L_range ); histo = histo.tolist()
+		return [float(v) for v in histo]
 		
 	# -------------------------------------------------------------
 	def increase_ratio(self, L):
@@ -76,9 +57,22 @@ class SignalFeatures(object):
 	
 	# --------------------------------------------------------------------------------------
 	''' Extract some simple features from many timeseries '''
-	def extractMany(self, L_sig_values):
+	def extractMany(self, L_sig_values, L_sig_range=None):
 		F = [ self.extract(sig_values) for sig_values in L_sig_values ]
 		x = [ v for vv in F for v in vv ] # Flat list of features for all signals
+		
+		# '''
+		if L_sig_range is not None:
+			L_sig_range_orig = [ range[:2] for range in L_sig_range ]
+			L_sig_range_deriv = [ range[2:] for range in L_sig_range ]
+			
+			histos_orig = [self.histogram(sig_values, sig_range) for (sig_values, sig_range) in zip(L_sig_values, L_sig_range_orig)]
+			histos_deriv = [self.histogram(np.gradient(sig_values), sig_range) for (sig_values, sig_range) in zip(L_sig_values, L_sig_range_deriv)]
+			
+			x_hists = [ v for vv in histos_orig for v in vv ] + [ v for vv in histos_deriv for v in vv ]
+			x += x_hists
+		# '''
+		
 		return x
 	
 	# --------------------------------------------------------------------------------------
