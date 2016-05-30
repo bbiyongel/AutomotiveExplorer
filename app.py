@@ -24,7 +24,11 @@ class App:
 	
 	# -----------------------------------------
 	def build_features_data(self, d_start=gb.D_START_CLUSTERING, d_end=gb.D_END_CLUSTERING):
+		print "\n --------- build_features_data ..."
+		
 		DATA = []
+		AXES_INFO = []
+		
 		date = d_start
 		while date < d_end:
 			sys.stdout.write("\r%s" % "build_features_data --- " + str(date)); sys.stdout.flush()
@@ -36,15 +40,15 @@ class App:
 			
 			x = SignalFeatures().extractMany([ values for times, values in sigsTimeValues ], self.sigsRanges) #Warning: Future calls to extractMany should take the signals in same order
 			DATA.append(x)
-		
-		return DATA
+			AXES_INFO.append( (x[:], sigsTimeValues) )
+			
+		return DATA, AXES_INFO
 		
 	# -----------------------------------------
 	''' Predict from the clustering done in the feature space '''
-	def predict_fsp(self, d_start, d_end, D=gb.DURATION):
+	def predict_fsp(self, d_start, d_end):
 		dico = defaultdict(list)
-		
-		timedelta = datetime.timedelta(milliseconds=D)
+		timedelta = datetime.timedelta(milliseconds=gb.DURATION)
 		date = d_start
 		while date < d_end:
 			sys.stdout.write("\r%s" % "predict_fsp --- " + str(date)); sys.stdout.flush()
@@ -112,22 +116,25 @@ class App:
 		viz.plot( axes, color=signame_labels, fig=figurename )
 	
 	# -----------------------------------------
-	def init_clust_tracker(self, clust, d_start=gb.D_START_INIT_TRACKER, d_end=gb.D_END_INIT_TRACKER):
+	def init_clust_tracker(self, clust, AXES_INFO, d_start=gb.D_START_INIT_TRACKER, d_end=gb.D_END_INIT_TRACKER):
 		print "\n --------- init_clust_tracker ..."
 		
 		self.clust = clust
 		self.tracker = ModeTracking(type=gb.PROBA_TYPE)
 		
 		# ------------- Initialize the Transition and Likelihoods based on the clustering result
-		timedelta = datetime.timedelta(milliseconds=86400000 * 1) # read chunk by chunk of (each chunk is of 'step' milliseconds)
-		date = d_start
-		while date < d_end:
-			if date + timedelta >= d_end: timedelta = d_end - date
-			times, axes, labels = self.predict_fsp(d_start=date, d_end=date + timedelta)
-			date += timedelta
+		labels = []
+		axes = [ [] for _ in self.sigReaders ]
+		for x, sigsTimeValues in AXES_INFO:
+			sub_times, sub_axes = SignalMerge.merge( sigsTimeValues, interpolate=False )
+			y = self.clust.predict(x)
+			sub_labels = [y for _ in sub_times]
 			
-			self.tracker.update_transition( labels )
-			self.tracker.update_likelihoods( axes, labels )
+			labels += sub_labels
+			for i in range(len(axes)):
+				axes[i] += sub_axes[i]
+		self.tracker.update_transition( labels )
+		self.tracker.update_likelihoods( axes, labels )
 		
 	# -----------------------------------------
 	def tracking(self, d_start=gb.D_START_TRACKING, d_end=gb.D_END_TRACKING, path=""):

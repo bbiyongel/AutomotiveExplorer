@@ -18,7 +18,7 @@ PROBA_TYPE = "empirical"
 # PROBA_TYPE = "multivariate"
 
 ARTIFICIAL = True
-PLOT_PATH = "C:/Users/mohbou/Desktop/MobilityFramework/plots/"+".".join(SIG_IDS)+"-"+VEHICLE+"-Art"+str(ARTIFICIAL)+"-K"+str(K)+"-"+PROBA_TYPE+"-D"+str(DURATION/(60*1000))+"---"+str(time.time())+"/"
+PLOT_PATH = "C:/Users/mohbou/Desktop/MobilityFramework/plots/TEST/"+".".join(SIG_IDS)+"-"+VEHICLE+"-Art"+str(ARTIFICIAL)+"-K"+str(K)+"-"+PROBA_TYPE+"-D"+str(DURATION/(60*1000))+"---"+str(time.time())+"/"
 
 # -----------------------------------------------------------------
 if not ARTIFICIAL:

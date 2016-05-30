@@ -36,7 +36,7 @@ if __name__ == "__main__":
 	
 	# -----------------------------
 	app = App(sigReaders)
-	DATA = app.build_features_data()
+	DATA, AXES_INFO = app.build_features_data()
 	
 	# features_combinations = getCombinations( range(len(DATA[0])), nb=20, length=2 )
 	features_combinations = range(2, len(DATA[0]))
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 		clust = Clustering(DATA, scale=True, features=None).gmm(k=gb.K) # kmeans, dpgmm
 		# clust = Clustering(DATA, scale=True, features=n_features).gmm(k=gb.K)
 		
-		app.init_clust_tracker(clust)
+		app.init_clust_tracker(clust, AXES_INFO)
 		
 		PLOT_PATH = gb.PLOT_PATH + str(id_combin) + '/'
 		
@@ -67,5 +67,5 @@ if __name__ == "__main__":
 	
 	# -----------------------------
 	map(lambda sr: sr.closeDB(), sigReaders)
-	
+	print "FINISH."; raw_input()
 	

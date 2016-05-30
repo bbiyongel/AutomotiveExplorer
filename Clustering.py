@@ -134,7 +134,7 @@ class Clustering:
 		X_processed = X
 		X_processed = self.reduceFeatures(X_processed)
 		X_processed = X_processed if self.scaler is None else self.scaler.transform(X_processed)
-		return self.h.predict(X_processed)
+		return list(self.h.predict(X_processed))
 	
 	#---------------------------------------
 	def quality(self, X=None):
