@@ -27,7 +27,7 @@ class ArtificialData(object):
 		self.coldEngine_ECT = (10, 70)
 		self.hotEngine_ECT = (70,  85)
 		
-		self.normal_behaviour = 100
+		self.normal_behaviour = 300
 		self.agressive_behaviour = 6
 		# -------------------------
 		
@@ -80,11 +80,11 @@ class ArtificialData(object):
 		self.normal_behaviour = int(self.normal_behaviour)
 		self.agressive_behaviour = int(self.agressive_behaviour)
 		
-		print self.highway_VS, self.highway_ES, self.highway_APP, self.highway_BPP
-		print self.countrySide_VS, self.countrySide_ES, self.countrySide_APP, self.countrySide_BPP
-		print self.city_VS, self.city_ES, self.city_APP, self.city_BPP
-		print self.coldEngine_ECT, self.hotEngine_ECT
-		print self.normal_behaviour, self.agressive_behaviour
+		# print self.highway_VS, self.highway_ES, self.highway_APP, self.highway_BPP
+		# print self.countrySide_VS, self.countrySide_ES, self.countrySide_APP, self.countrySide_BPP
+		# print self.city_VS, self.city_ES, self.city_APP, self.city_BPP
+		# print self.coldEngine_ECT, self.hotEngine_ECT
+		# print self.normal_behaviour, self.agressive_behaviour
 		
 	# -----------------------------------------------------------------------------
 	def run(self, parts=1, agg = None):
@@ -98,7 +98,7 @@ class ArtificialData(object):
 			period_agg = 60 * random.randint(3*60, 5*60)
 			
 			modes_agg += [ agressive for _ in range(period_agg) ]
-			print "agressive =======>", agressive, period_agg
+			# print "agressive =======>", agressive, period_agg
 			
 			# -------------------------------------
 			total_time = 0
@@ -110,7 +110,7 @@ class ArtificialData(object):
 				total_time += period_reg
 				
 				modes_reg += [ region for _ in range(period_reg) ]
-				print "region =======>", region, period_reg, total_time
+				# print "region =======>", region, period_reg, total_time
 				
 				if region==0:
 					VS_, ES_, APP_, BPP_ = self.city(period=period_reg, agressive=agressive)
@@ -130,7 +130,7 @@ class ArtificialData(object):
 				total_time += period_tem
 				
 				modes_tem += [ cold for _ in range(period_tem) ]
-				print "cold =======>", cold, period_tem, total_time
+				# print "cold =======>", cold, period_tem, total_time
 				
 				if cold==0: ECT += self.hotEngine(period=period_tem)
 				elif cold==1: ECT += self.coldEngine(period=period_tem)
@@ -152,8 +152,8 @@ class ArtificialData(object):
 		# plt.scatter(range(len(BPP)), BPP, c=modes_reg); plt.show()
 		# plt.scatter(range(len(ECT)), ECT, c=modes_tem); plt.show()
 		
-		print len(modes_agg), len(modes_reg), len(modes_tem)
-		print set(modes_agg), set(modes_reg), set(modes_tem)
+		# print len(modes_agg), len(modes_reg), len(modes_tem)
+		# print set(modes_agg), set(modes_reg), set(modes_tem)
 		
 		if agg is None:
 			combined_modes = zip(modes_agg, modes_reg)

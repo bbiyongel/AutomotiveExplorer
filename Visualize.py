@@ -1,5 +1,6 @@
 import datetime
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pylab as pl
@@ -21,7 +22,7 @@ class Visualize:
 		
 		self.plots = None
 		# self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
-		self.colors = ['r', 'b', 'g','m', 'y', 'k']
+		self.colors = ['r', 'b', 'g', 'm', 'y', 'k', 'c'] + [ (random.uniform(0.,1.), random.uniform(0.,1.), random.uniform(0.,1.)) for _ in range(10) ]
 		
 	#---------------------------------------
 	def cl(self, id):

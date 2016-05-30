@@ -1,6 +1,8 @@
 import numpy as np
 import math
 import globals as gb
+from sklearn.cluster import AffinityPropagation
+from sklearn.cluster import MeanShift
 from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
 from sklearn.mixture import DPGMM
@@ -10,8 +12,8 @@ from sklearn.feature_selection import VarianceThreshold
 from Visualize import Visualize
 from scipy.spatial import distance
 import matplotlib.pyplot as plt
+import scipy
 from random import shuffle
-from scipy.spatial import distance
 
 class Clustering:
 	def __init__(self, X, scale=False, features=None):
@@ -54,6 +56,22 @@ class Clustering:
 		else:
 			return [ [v for iv,v in enumerate(x) if iv in self.ids] for x in X ]
 	
+	#---------------------------------------
+	def affinity(self, k=2): # K is not used here
+		self.h = AffinityPropagation(damping=0.75, preference=k, max_iter=200, convergence_iter=15, copy=True, affinity='euclidean').fit( self.X )
+		self.Y = self.h.labels_
+		self.k = k
+		self.centers = self.getCenters()
+		
+		return self
+	#---------------------------------------
+	def meanshift(self, k=2): # K is not used here
+		self.h = MeanShift(bandwidth=None, seeds=None, bin_seeding=False, min_bin_freq=1, cluster_all=True).fit( self.X )
+		self.Y = self.h.labels_
+		self.k = k
+		self.centers = self.getCenters()
+		
+		return self
 	#---------------------------------------
 	def kmeans(self, k=2):
 		self.h = KMeans(n_clusters = k, init = 'k-means++', n_init = 10, max_iter = 1000, tol = 0.00001, random_state = self.random_seed).fit( self.X )
@@ -126,6 +144,7 @@ class Clustering:
 		x_processed = x
 		x_processed = self.reduceFeatures([x_processed])[0]
 		x_processed = x_processed if self.scaler is None else self.scaler.transform(x_processed)
+		
 		return self.h.predict(x_processed)[0]
 	
 	#---------------------------------------
@@ -134,6 +153,7 @@ class Clustering:
 		X_processed = X
 		X_processed = self.reduceFeatures(X_processed)
 		X_processed = X_processed if self.scaler is None else self.scaler.transform(X_processed)
+		
 		return list(self.h.predict(X_processed))
 	
 	#---------------------------------------

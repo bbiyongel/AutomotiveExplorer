@@ -61,7 +61,7 @@ class SignalFeatures(object):
 		F = [ self.extract(sig_values) for sig_values in L_sig_values ]
 		x = [ v for vv in F for v in vv ] # Flat list of features for all signals
 		
-		# '''
+		'''
 		if L_sig_range is not None:
 			L_sig_range_orig = [ range[:2] for range in L_sig_range ]
 			L_sig_range_deriv = [ range[2:] for range in L_sig_range ]
@@ -71,7 +71,7 @@ class SignalFeatures(object):
 			
 			x_hists = [ v for vv in histos_orig for v in vv ] + [ v for vv in histos_deriv for v in vv ]
 			x += x_hists
-		# '''
+		'''
 		
 		return x
 	

@@ -3,7 +3,7 @@ from Visualize import Visualize
 from SignalMerge import SignalMerge
 from SignalFeatures import SignalFeatures
 from ModeTracking import ModeTracking
-from sklearn.metrics import silhouette_score, adjusted_rand_score
+from sklearn.metrics import silhouette_score, adjusted_rand_score, adjusted_mutual_info_score, homogeneity_completeness_v_measure
 from collections import defaultdict
 import datetime
 import time
@@ -161,15 +161,23 @@ class App:
 		# ----------------------------
 		if gb.ARTIFICIAL:
 			times, values, true_labels = self.sigReaders[0].getSignal(start=d_start, end=d_end, dated=gb.DATED, get_modes=True)
-			score_fps = adjusted_rand_score(true_labels, labels_fsp)
-			score_sps = adjusted_rand_score(true_labels, labels_ssp)
+			
+			ari_fps = adjusted_rand_score(true_labels, labels_fsp); ari_sps = adjusted_rand_score(true_labels, labels_ssp)
+			ami_fps = adjusted_mutual_info_score(true_labels, labels_fsp); ami_sps = adjusted_mutual_info_score(true_labels, labels_ssp)
+			ho_fps, com_fps, vm_fps = homogeneity_completeness_v_measure(true_labels, labels_fsp); ho_sps, com_sps, vm_sps = homogeneity_completeness_v_measure(true_labels, labels_ssp)
+			
 			print "---------------------------------------------------"
-			print "adjusted_rand_score FSP:", score_fps
-			print "adjusted_rand_score SSP:", score_sps
-			return score_fps, score_sps
-		# ----------------------------
-		return 0., 0.
-		# return self.silhouette(axes_fsp, labels_fsp), self.silhouette(axes_ssp, labels_ssp)
+			print "adjusted_rand_score \t (ari_fps, ari_sps)", (ari_fps, ari_sps)
+			print "adjusted_mutual_info \t (ami_fps, ami_sps)", (ami_fps, ami_sps)
+			print "homogeneity \t (ho_fps, ho_sps)", (ho_fps, ho_sps)
+			print "completeness \t (com_fps, com_sps)", (com_fps, com_sps)
+			print "v_measure \t (vm_fps, vm_sps)", (vm_fps, vm_sps)
+			
+			return (ari_fps, ari_sps), (ami_fps, ami_sps), (ho_fps, ho_sps), (com_fps, com_sps), (vm_fps, vm_sps)
+			
+		else:
+			return 0., 0.
+			# return self.silhouette(axes_fsp, labels_fsp), self.silhouette(axes_ssp, labels_ssp)
 		
 	# -----------------------------------------
 	def silhouette(self, axes, labels):
