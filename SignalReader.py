@@ -27,7 +27,7 @@ class SignalReader(object):
 	''' Return a signal (timestamps and values) between the dates start and end. The parameter end could be a datetime
 		or a duration in milliseconds '''
 	def getSignal(self, start=None, end=None, dated=False):
-		if isinstance( end, ( int, long, float ) ):
+		if isinstance( end, ( int, float ) ):
 			end = (self.init_date if start is None else start) + datetime.timedelta(milliseconds=int(end))
 		
 		if start is None and end is None:

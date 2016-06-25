@@ -27,7 +27,7 @@ class Visualize:
 	#---------------------------------------
 	def cl(self, id):
 		if id >= len(self.colors):
-			print "Warning: the color id is ", id, " >= ", len(self.colors),". Some colors may be reused for the same id."
+			print("Warning: the color id is ", id, " >= ", len(self.colors),". Some colors may be reused for the same id.")
 		return self.colors[id%len(self.colors)]
 		
 	#---------------------------------------
@@ -38,35 +38,35 @@ class Visualize:
 		
 	#---------------------------------------
 	def PCA_Plot(self, axs, dim = 3, axs_labels = None, color = 'r', marker = '.', fig = None):
-		X = [ list(v) for v in zip(*axs) ]
+		X = [ list(v) for v in list(zip(*axs)) ]
 		pca = PCA(n_components=dim)
 		XX = pca.fit(X).transform(X)
 		XX = [list(x) for x in XX]
 		
-		axs_r = [ list(v) for v in zip(*XX) ]
+		axs_r = [ list(v) for v in list(zip(*XX)) ]
 		self.plot(axs_r, axs_labels, color, marker, fig)
 		
 	#---------------------------------------
 	def PCA_Transform(self, axs, dim = 3):
-		X = [ list(v) for v in zip(*axs) ]
+		X = [ list(v) for v in list(zip(*axs)) ]
 		pca = PCA(n_components=dim)
 		XX = pca.fit(X).transform(X)
 		return [list(x) for x in XX]
 		
 	#---------------------------------------
 	def MDS_Plot(self, axs, dim = 3, axs_labels = None, color = 'r', marker = '.', fig = None):
-		X = [ list(v) for v in zip(*axs) ]
+		X = [ list(v) for v in list(zip(*axs)) ]
 		similarities = euclidean_distances( np.array(X).astype(np.float64) )
 		mds = manifold.MDS(n_components=dim, dissimilarity='precomputed')
 		XX = mds.fit(similarities).embedding_
 		XX = [list(x) for x in XX]
 		
-		axs_r = [ list(v) for v in zip(*XX) ]
+		axs_r = [ list(v) for v in list(zip(*XX)) ]
 		self.plot(axs_r, axs_labels, color, marker, fig)
 		
 	#---------------------------------------
 	def MDS_Transform(self, axs, dim = 3):
-		X = [ list(v) for v in zip(*axs) ]
+		X = [ list(v) for v in list(zip(*axs)) ]
 		similarities = euclidean_distances( np.array(X).astype(np.float64) )
 		mds = manifold.MDS(n_components=dim, dissimilarity='precomputed')
 		XX = mds.fit(similarities).embedding_
@@ -99,7 +99,7 @@ class Visualize:
 			axs = [ range( len(axs[0]) ) ] + axs
 			axs_labels = [ "Samples" ] + axs_labels
 		elif len(axs) > 3:
-			axs = zip(*self.PCA_Transform(axs))
+			axs = list(zip(*self.PCA_Transform(axs)))
 		
 		if self.plots is None:
 			self.start_plot( axs_labels )
@@ -139,11 +139,11 @@ class Visualize:
 		keys = groups.keys()
 		
 		if len(keys) > len(colors):
-			print "Warning: the number of groups to plot is ", len(keys), " > ", len(colors),". Some groups may be colored similarly."
+			print("Warning: the number of groups to plot is ", len(keys), " > ", len(colors),". Some groups may be colored similarly.")
 			
 		for y in keys:
 			cl = colors[y % len(colors)]
-			self.do_plot( zip(* groups[y] ), color = cl )
+			self.do_plot( list(zip(* groups[y] )), color = cl )
 		
 		self.end_plot(fig)
 		

@@ -4,6 +4,7 @@ from Visualize import Visualize
 from SignalReader import SignalReader
 from SignalReaderArtificial import SignalReaderArtificial
 from Clustering import Clustering
+#from ArtificialDataOriginal import ArtificialData
 from ArtificialData import ArtificialData
 import itertools
 import os
@@ -15,7 +16,7 @@ import warnings
 import numpy as np
 
 # =================================================================
-if __name__ == "__main__":
+if __name__ == '__main__':
 	warnings.simplefilter(action = "ignore", category = FutureWarning)
 	random.seed(1234)
 	viz = Visualize()
@@ -27,8 +28,11 @@ if __name__ == "__main__":
 	
 	# Ks = [3, 6, 8, 10] # Clusters
 	# Ds = [5, 10, 15, 30, 60, 90, 120] # Duration window
-	# Ps = [0.0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.] # Patterns similarity (difficulty)
-	# Ns = [3.] # Noise level
+	Ks = [6] # Clusters
+	Ds = [5]
+	# Ds = [.5, 1, 5, 15, 60] # Duration window
+	Ps = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.] # Patterns similarity (difficulty)
+	Ns = [3.] # Noise level
 	
 	variable = "P"
 	
@@ -53,12 +57,12 @@ if __name__ == "__main__":
 			if variable=="N": N = param
 			if variable=="K": K = param
 			
-			id_combin = "-".join([ str(vn)+str(v) for v,vn in zip(comb, combo_name) ]) + "-Agg"+str(agg)
+			id_combin = "-".join([ str(vn)+str(v) for v,vn in list(zip(comb, combo_name)) ]) + "-Agg"+str(agg)
 			vals.append(param)
 			gb.K = K
 			gb.DURATION = D * 60*1000
 			
-			signalsValues, modes = ArtificialData(noise=N, ptrn=P).run(parts=30, agg=agg) # VS, ES, APP, BPP, ECT
+			signalsValues, modes = ArtificialData(noise=N, ptrn=P).run(parts=30) # VS, ES, APP, BPP, ECT
 			sigReaders = [ SignalReaderArtificial(signame="Signal"+str(i), sigvalues=values, modes=modes) for i,values in enumerate(signalsValues) ]
 			app = App(sigReaders)
 			
@@ -100,6 +104,7 @@ if __name__ == "__main__":
 		
 	# -----------------------------
 	map(lambda sr: sr.closeDB(), sigReaders)
-	print "FINISH."; raw_input()
+	print("FINISH.")
+	input()
 	
 	

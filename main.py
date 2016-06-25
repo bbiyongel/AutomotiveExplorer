@@ -61,11 +61,12 @@ if __name__ == "__main__":
 		qualitiesSSP.append(qualitySSP)
 		break
 		
-	print "qualitiesFSP/qualitiesSSP", zip(qualitiesFSP, qualitiesSSP)
+	print("qualitiesFSP/qualitiesSSP", list(zip(qualitiesFSP, qualitiesSSP)))
 	Visualize().plot( [combos, qualitiesFSP], axs_labels=['Combination (over features)', 'Quality'], marker="-", label="id_combin="+str(id_combin), fig="plots/quality-combos-"+str(time.time())+".png" )
 	Visualize().plot( [combos, qualitiesSSP], axs_labels=['Combination (over features)', 'qualitySS'], marker="-", label="id_combin="+str(id_combin), fig="plots/qualitySS-combos-"+str(time.time())+".png" )
 	
 	# -----------------------------
 	map(lambda sr: sr.closeDB(), sigReaders)
-	print "FINISH."; raw_input()
+	print("FINISH.")
+	input()
 	

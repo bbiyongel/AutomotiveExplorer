@@ -66,8 +66,8 @@ class SignalFeatures(object):
 			L_sig_range_orig = [ range[:2] for range in L_sig_range ]
 			L_sig_range_deriv = [ range[2:] for range in L_sig_range ]
 			
-			histos_orig = [self.histogram(sig_values, sig_range) for (sig_values, sig_range) in zip(L_sig_values, L_sig_range_orig)]
-			histos_deriv = [self.histogram(np.gradient(sig_values), sig_range) for (sig_values, sig_range) in zip(L_sig_values, L_sig_range_deriv)]
+			histos_orig = [self.histogram(sig_values, sig_range) for (sig_values, sig_range) in list(zip(L_sig_values, L_sig_range_orig))]
+			histos_deriv = [self.histogram(np.gradient(sig_values), sig_range) for (sig_values, sig_range) in list(zip(L_sig_values, L_sig_range_deriv))]
 			
 			x_hists = [ v for vv in histos_orig for v in vv ] + [ v for vv in histos_deriv for v in vv ]
 			x += x_hists

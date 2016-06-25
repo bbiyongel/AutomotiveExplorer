@@ -32,7 +32,7 @@ class Clustering:
 		
 		# Reduce the number of features
 		if features is not None:
-			if isinstance( features, (int, long, float) ):
+			if isinstance( features, (int, float) ):
 				variances = VarianceThreshold().fit(self.X).variances_
 				self.ids = sorted(range(len(variances)), key=lambda i: variances[i])[-int(features):] # indexes of the top n_features values in variances
 				
@@ -40,7 +40,7 @@ class Clustering:
 				self.ids = features
 			
 			self.X = self.reduceFeatures(self.X)
-			print "Selected features", self.ids, "on a total of", len(X[0])  # FOR DEBUG
+			print("Selected features", self.ids, "on a total of", len(X[0]))  # FOR DEBUG
 			
 			
 		# Visualize().plot( zip(*self.X) ) # FOR DEBUG
@@ -112,7 +112,7 @@ class Clustering:
 	#---------------------------------------
 	def done(self):
 		if self.h is None:
-			print "Clustering is not yet done !"
+			print("Clustering is not yet done !")
 			return False
 		else:
 			return True
@@ -134,7 +134,7 @@ class Clustering:
 			
 			centers = []
 			for label in clusters:
-				centers.append( [np.mean(col) for col in zip(* clusters[label] ) ] )
+				centers.append( [np.mean(col) for col in list(zip(* clusters[label] )) ] )
 
 			return centers
 		
@@ -144,7 +144,7 @@ class Clustering:
 		x_processed = x
 		x_processed = self.reduceFeatures([x_processed])[0]
 		x_processed = x_processed if self.scaler is None else self.scaler.transform(x_processed)
-		
+
 		return self.h.predict(x_processed)[0]
 	
 	#---------------------------------------
@@ -180,7 +180,7 @@ class Clustering:
 		
 		viz = Visualize()
 		if len(self.X[0]) > 3:
-			X = viz.PCA_Transform( zip(*self.X) )
+			X = viz.PCA_Transform( list(zip(*self.X)) )
 		else:
 			X = self.X
 		
@@ -192,9 +192,9 @@ class Clustering:
 		
 		centers_for_plot = [] # Not the real centers because dimension was reduced using PCA
 		for label in clusters:
-			centers_for_plot.append( [np.mean(col) for col in zip(* clusters[label] ) ] )
+			centers_for_plot.append( [np.mean(col) for col in list(zip(* clusters[label] )) ] )
 		
-		viz.do_plot( zip(*centers_for_plot), marker='o', color='m' )
+		viz.do_plot(list(zip(*centers_for_plot)), marker='o', color='m')
 		viz.plot_groups(clusters, fig)
 	
 	#---------------------------------------

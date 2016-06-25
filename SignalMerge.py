@@ -10,13 +10,13 @@ class SignalMerge(object):
 	def merge(LTimeseries, interpolate=False):
 		i = 0
 		timestamps, values = LTimeseries[i]
-		df = pd.DataFrame(zip(timestamps, values), columns=['Time', 'Values'])
+		df = pd.DataFrame(list(zip(timestamps, values)), columns=['Time', 'Values'])
 		df.index = df['Time']		
 		
-		while True:
+		while i < len(LTimeseries)-1:
 			i += 1
 			timestamps, values = LTimeseries[i]
-			df_new = pd.DataFrame(zip(timestamps, values), columns=['Time', 'Values'])
+			df_new = pd.DataFrame(list(zip(timestamps, values)), columns=['Time', 'Values'])
 			df_new.index = df_new['Time']
 			
 			if i < len(LTimeseries)-1:
@@ -32,7 +32,7 @@ class SignalMerge(object):
 			df.fillna(method='bfill', inplace=True)
 		
 		merged_data = df.get_values().tolist()
-		axes = zip(*merged_data)
+		axes = list(zip(*merged_data))
 		
 		times = axes[0]
 		axes = axes[1:]

@@ -21,9 +21,9 @@ class LikelihoodProbabilityDependence(object): # Not assuming independence betwe
 		self.dict = defaultdict(CovarianceMatrix)
 	
 	def fit(self, axes, labels):
-		data = zip(*axes)
+		data = list(zip(*axes))
 		
-		for (x, y) in zip(data, labels):
+		for (x, y) in list(zip(data, labels)):
 			x = [float(v) for v in x]
 			self.dict[y].update( np.array([ x ]) )
 			
@@ -90,7 +90,7 @@ class UnivariateLikelihoodProbability(object):
 	# -------------------------------------------------------------------------
 	#  Compute the likelihood model according to data X and labels Y
 	def fit_empirical(self, AX, Y):
-		for (v, y) in zip(AX, Y):
+		for (v, y) in list(zip(AX, Y)):
 			bar = self.dict.setdefault(y, {})
 			bar[v] = bar.setdefault(v, 0) + 1
 			
@@ -105,7 +105,7 @@ class UnivariateLikelihoodProbability(object):
 	# -------------------------------------------------------------------------
 	# Compute the likelihood model according to data X and labels Y
 	def fit_normal(self, AX, Y):
-		for (v, y) in zip(AX, Y):
+		for (v, y) in list(zip(AX, Y)):
 			dp = [float(v)] # because v is one value, but we need an array of data points in the mdp update method
 			self.dict[y].update( np.array([dp]) )
 		
