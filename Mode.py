@@ -3,17 +3,14 @@ import statistics
 import numpy as np
 
 class Mode(object):
-    lowerLimit = 0.
-    higherLimit = 0.
-    length = 0.
-    noise = 0.
 
     # constructor
-    def __init__(self, lowerLimit, higherLimit, waveLength, noise):
+    def __init__(self, lowerLimit, higherLimit, waveLength, noise, name='b'):
         self.lowerLimit = lowerLimit
         self.higherLimit = higherLimit
         self.waveLength = waveLength
         self.noise = noise
+        self.name=name
 
     # def adjust_overlap(self, overlapLevel, value_ll, value_hl, value_len, value_ns):
     #      self.lowerLimit = self.lowerLimit +  overlapLevel * (value_ll - self.lowerLimit)

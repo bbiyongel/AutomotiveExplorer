@@ -13,9 +13,9 @@ class ArtificialData(object):
 		
 		# -------------------------
 
-		self.highway_VS = (80, 80)
+		self.highway_VS = (70, 90)
 		self.countrySide_VS = (60,  80)
-		self.city_VS = (0,  60)
+		self.city_VS = (0,  70)
 
 		# -------------------------
 		
@@ -38,10 +38,10 @@ class ArtificialData(object):
 		modes_reg = []
 		
 		for _ in range(parts):
-			period_agg = 60 * random.randint(3*60, 5*60)
+			#period_agg = 60 * random.randint(3*60, 5*60)
 			# -------------------------------------
 			total_time = 0
-			while total_time < period_agg:
+			while total_time < gb.DURATION: # period_agg
 				region = random.choice([0,1,2])
 				# if region == 0: period_reg = 60 * random.randint(30, 2*60) # city
 				# if region == 1: period_reg = 60 * random.randint(30, 60) # countrySide
@@ -64,16 +64,6 @@ class ArtificialData(object):
 					VS_ = self.highway(period=period_reg)
 				
 				VS += VS_
-
-		# viz = Visualize()
-		# signame_labels = [viz.colors[y % len(viz.colors)] for y in modes_reg]
-        #
-		# #plt.scatter(range(len(VS)), VS, c=ground_truth); plt.show()
-        #
-		# viz.do_plot( VS, axs_labels=['Input Vehicle Speed'], marker="-", color=signame_labels)
-		# viz.end_plot( fig=gb.PLOT_PATH+"/VM_Input---"+str(time.time())+".png" )
-
-
 		return [VS], modes_reg
 		
 	# -----------------------------------------------------------------------------

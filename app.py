@@ -192,7 +192,8 @@ class App:
             print("completeness \t (com_fps, com_sps)", (com_fps, com_sps))
             print("v_measure \t (vm_fps, vm_sps)", (vm_fps, vm_sps))
 
-            return (ari_fps, ari_sps), (ami_fps, ami_sps), (ho_fps, ho_sps), (com_fps, com_sps), (vm_fps, vm_sps)
+            #return (ari_fps, ari_sps), (ami_fps, ami_sps), (ho_fps, ho_sps), (com_fps, com_sps), (vm_fps, vm_sps)
+            return ((ari_fps, ari_sps), (ami_fps, ami_sps), (ho_fps, ho_sps), (com_fps, com_sps), (vm_fps, vm_sps)), (times_fsp,axes_fsp,labels_fsp,times_ssp,axes_ssp,labels_ssp)
 
         else:
             return 0., 0.

@@ -46,3 +46,4 @@ else:
 	D_START_TRACKING = datetime.datetime(year=2011, month=6, day=16, hour=5, minute=23, second=0, microsecond=0)
 	# D_END_TRACKING = datetime.datetime(year=2011, month=6, day=17, hour=20, minute=0, second=0, microsecond=0)
 	D_END_TRACKING = datetime.datetime(year=2011, month=6, day=16, hour=20, minute=0, second=0, microsecond=0)
+	DURATION = int((D_END_TRACKING - D_START_TRACKING).total_seconds())
